@@ -5,6 +5,10 @@ import '../../presentation/pages/home_page.dart';
 import '../../presentation/pages/login_page.dart';
 import '../../presentation/pages/register_page.dart';
 import '../../presentation/pages/splash_page.dart';
+import '../../presentation/pages/katalog/katalog_screen.dart';
+import '../../presentation/pages/peminjaman/peminjaman_list_screen.dart';
+import '../../presentation/pages/profile/profile_screen.dart';
+import '../../presentation/widgets/scaffold_with_nav_bar.dart';
 import '../routes/route_names.dart';
 
 final router = GoRouter(
@@ -22,9 +26,26 @@ final router = GoRouter(
       path: RouteNames.register,
       builder: (context, state) => const RegisterPage(),
     ),
-    GoRoute(
-      path: RouteNames.home,
-      builder: (context, state) => const HomePage(),
+    ShellRoute(
+      builder: (context, state, child) => ScaffoldWithNavBar(child: child),
+      routes: [
+        GoRoute(
+          path: RouteNames.home,
+          builder: (context, state) => const HomePage(),
+        ),
+        GoRoute(
+          path: RouteNames.katalog,
+          builder: (context, state) => const KatalogScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.peminjaman,
+          builder: (context, state) => const PeminjamanScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.profile,
+          builder: (context, state) => const ProfileScreen(),
+        ),
+      ],
     ),
   ],
   errorBuilder: (context, state) => Scaffold(
@@ -33,8 +54,6 @@ final router = GoRouter(
     ),
   ),
   redirect: (context, state) {
-    // Protected routes - redirect to login if not authenticated
-    // Note: The splash handles initial auth check, this is for deep links
     return null;
   },
 );

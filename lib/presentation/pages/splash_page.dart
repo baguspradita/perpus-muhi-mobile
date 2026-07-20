@@ -13,20 +13,64 @@ class SplashPage extends ConsumerStatefulWidget {
   ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends ConsumerState<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _logoFade;
+  late final Animation<Offset> _textSlide;
+  late final Animation<double> _dotsFade;
+
   @override
   void initState() {
     super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+      ),
+    );
+
+    _textSlide = Tween<Offset>(
+      begin: const Offset(0, 30),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _dotsFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.5, 0.8, curve: Curves.easeIn),
+      ),
+    );
+
+    _controller.forward();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _navigate();
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _navigate() async {
     final authNotifier = ref.read(authNotifierProvider.notifier);
     await authNotifier.initialize();
 
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
 
     final authState = ref.read(authNotifierProvider);
@@ -39,33 +83,123 @@ class _SplashPageState extends ConsumerState<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.primary,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.library_books_outlined,
-              size: 80,
-              color: Colors.white,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Perpustakaan Muhi',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FadeTransition(
+                opacity: _logoFade,
+                child: Image.asset(
+                  'assets/images/logo-muhi.png',
+                  height: 100,
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
-            SizedBox(height: 32),
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
-            ),
-          ],
+              const SizedBox(height: 20),
+              SlideTransition(
+                position: _textSlide,
+                child: FadeTransition(
+                  opacity: _logoFade,
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Perpustakaan Muhi',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Sistem Manajemen Buku',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white.withValues(alpha: 0.8),
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 48),
+              FadeTransition(
+                opacity: _dotsFade,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (i) => _LoadingDot(i: i)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _LoadingDot extends StatefulWidget {
+  final int i;
+  const _LoadingDot({required this.i});
+
+  @override
+  State<_LoadingDot> createState() => _LoadingDotState();
+}
+
+class _LoadingDotState extends State<_LoadingDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    Future.delayed(Duration(milliseconds: 200 * widget.i), () {
+      if (mounted) _controller.repeat(reverse: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: Colors.white
+                  .withValues(alpha: 0.9)
+                  .withValues(alpha: _anim.value),
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+      },
     );
   }
 }

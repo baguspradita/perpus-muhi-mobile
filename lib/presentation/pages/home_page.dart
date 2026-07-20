@@ -4,7 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/routes/route_names.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
+import '../../domain/entities/user_entity.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/app_card.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -17,9 +21,31 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Perpustakaan Muhi'),
         automaticallyImplyLeading: false,
         actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined),
+                tooltip: 'Notifikasi',
+                onPressed: () {},
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.error,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Keluar',
@@ -28,101 +54,99 @@ class HomePage extends ConsumerWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Selamat Datang, ${user?.nama ?? 'Pengguna'}',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Perpustakaan Muhi',
-              style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 32),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Informasi Akun',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _infoRow('Email', user?.email ?? '-'),
-                    _infoRow('Role', _formatRole(user?.role)),
-                    if (user?.role == 'siswa') ...[
-                      _infoRow('NISN', user?.nisn ?? '-'),
-                      _infoRow('Kelas', user?.kelas?.toString() ?? '-'),
-                      _infoRow('Jurusan', user?.jurusan ?? '-'),
-                    ],
-                    if (user?.role == 'guru') ...[
-                      _infoRow('NIP', user?.nip ?? '-'),
-                      _infoRow('Mata Pelajaran', user?.mapel ?? '-'),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+            _buildGreeting(context, user),
+            const SizedBox(height: AppSpacing.xl),
+            _buildStatsSection(context),
+            const SizedBox(height: AppSpacing.xxl),
+            _buildMenuSection(context, authState),
           ],
         ),
       ),
     );
   }
 
-  String _formatRole(String? role) {
-    switch (role) {
-      case 'siswa':
-        return 'Siswa';
-      case 'guru':
-        return 'Guru';
-      case 'petugas':
-        return 'Petugas';
-      default:
-        return role ?? '-';
-    }
+  Widget _buildGreeting(BuildContext context, UserEntity? user) {
+    final hour = DateTime.now().hour;
+    final greeting = switch (hour) {
+      < 11 => 'Selamat pagi',
+      < 15 => 'Selamat siang',
+      < 18 => 'Selamat sore',
+      _ => 'Selamat malam',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$greeting, ${user?.nama ?? 'User'} 👋',
+          style: AppTypography.heading1.copyWith(
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Perpustakaan Muhi',
+          style: AppTypography.bodyLarge.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+  Widget _buildStatsSection(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
+          _StatCard(title: 'Total Buku', value: '1,245', icon: Icons.library_books, color: AppColors.primary, bgColor: AppColors.primaryContainer),
+          const SizedBox(width: AppSpacing.md),
+          _StatCard(title: 'Total Anggota', value: '890', icon: Icons.people, color: AppColors.success, bgColor: AppColors.successLight),
+          const SizedBox(width: AppSpacing.md),
+          _StatCard(title: 'Dipinjam', value: '45', icon: Icons.book, color: AppColors.warning, bgColor: AppColors.warningLight),
+          const SizedBox(width: AppSpacing.md),
+          _StatCard(title: 'Terlambat', value: '12', icon: Icons.warning, color: AppColors.error, bgColor: AppColors.errorLight),
         ],
       ),
+    );
+  }
+
+  Widget _buildMenuSection(BuildContext context, AuthState authState) {
+    final isPetugas = authState.user?.role == 'petugas';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Akses Cepat',
+          style: AppTypography.heading2.copyWith(
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        GridView.count(
+          crossAxisCount: 4,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
+          childAspectRatio: 1,
+          children: [
+            _MenuCard(title: 'Katalog', icon: Icons.menu_book, color: AppColors.primary, onTap: () => context.go(RouteNames.home)),
+            _MenuCard(title: 'Peminjaman', icon: Icons.history, color: AppColors.secondary, onTap: () => context.go(RouteNames.home)),
+            _MenuCard(title: 'Riwayat', icon: Icons.list_alt, color: AppColors.warning, onTap: () => context.go(RouteNames.home)),
+            _MenuCard(title: 'Profile', icon: Icons.person, color: AppColors.success, onTap: () => context.go(RouteNames.home)),
+            if (isPetugas)
+              _MenuCard(title: 'Master', icon: Icons.settings, color: AppColors.textSecondary, onTap: () => context.go(RouteNames.home)),
+            if (isPetugas)
+              _MenuCard(title: 'Anggota', icon: Icons.group, color: AppColors.textSecondary, onTap: () => context.go(RouteNames.home)),
+          ],
+        ),
+      ],
     );
   }
 
@@ -156,5 +180,100 @@ class HomePage extends ConsumerWidget {
         context.go(RouteNames.login);
       }
     }
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: bgColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  value,
+                  style: AppTypography.heading2.copyWith(
+                    color: color,
+                    fontSize: 24,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  title,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _MenuCard({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 32, color: color),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            title,
+            style: AppTypography.bodyMedium.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 }

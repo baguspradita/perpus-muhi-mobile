@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/routes/route_names.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/utils/validators.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/app_button.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -57,21 +59,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 40),
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.library_books_outlined,
+                    color: AppColors.primary,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 24),
                 const Text(
                   'Masuk ke Akun',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: AppTypography.heading1,
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Masukkan email dan password Anda',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: AppTypography.bodyLarge,
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
@@ -103,14 +112,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                   validator: Validators.password,
                 ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text('Lupa Password?'),
-                  ),
-                ),
                 if (authState.errorMessage.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   Container(
@@ -134,21 +135,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ],
                 const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: authState.isLoading ? null : _login,
-                    child: authState.isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text('Masuk'),
-                  ),
+                AppButton(
+                  label: 'Masuk',
+                  isExpanded: true,
+                  isLoading: authState.isLoading,
+                  onPressed: _login,
                 ),
                 const SizedBox(height: 24),
                 Row(
