@@ -6,6 +6,8 @@ class ApiClient {
 
   ApiClient(this._dio);
 
+  Dio get dio => _dio;
+
   Future<ApiResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,

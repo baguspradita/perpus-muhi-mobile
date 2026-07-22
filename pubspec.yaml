@@ -47,6 +47,9 @@ dependencies:
   # Functional programming (Either for error handling)
   dartz: ^0.10.1
 
+  # Google Fonts for Outfit font
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

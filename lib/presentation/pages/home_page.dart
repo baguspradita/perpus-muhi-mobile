@@ -9,6 +9,7 @@ import '../../core/theme/app_typography.dart';
 import '../../domain/entities/user_entity.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/app_card.dart';
+import '../widgets/stat_card.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -82,7 +83,7 @@ class HomePage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$greeting, ${user?.nama ?? 'User'} 👋',
+          '$greeting, ${user?.nama ?? 'User'}',
           style: AppTypography.heading1.copyWith(
             color: AppColors.textPrimary,
           ),
@@ -103,13 +104,32 @@ class HomePage extends ConsumerWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _StatCard(title: 'Total Buku', value: '1,245', icon: Icons.library_books, color: AppColors.primary, bgColor: AppColors.primaryContainer),
+          StatCard(
+            title: 'TOTAL BUKU',
+            value: '1,245',
+            icon: Icons.library_books,
+            iconColor: AppColors.primary,
+            bgColor: AppColors.primaryLight,
+            shadowColor: AppColors.shadowIndigo,
+          ),
           const SizedBox(width: AppSpacing.md),
-          _StatCard(title: 'Total Anggota', value: '890', icon: Icons.people, color: AppColors.success, bgColor: AppColors.successLight),
+          StatCard(
+            title: 'TOTAL ANGGOTA',
+            value: '890',
+            icon: Icons.people,
+            iconColor: AppColors.success,
+            bgColor: AppColors.successLight,
+            shadowColor: AppColors.shadowEmerald,
+          ),
           const SizedBox(width: AppSpacing.md),
-          _StatCard(title: 'Dipinjam', value: '45', icon: Icons.book, color: AppColors.warning, bgColor: AppColors.warningLight),
-          const SizedBox(width: AppSpacing.md),
-          _StatCard(title: 'Terlambat', value: '12', icon: Icons.warning, color: AppColors.error, bgColor: AppColors.errorLight),
+          StatCard(
+            title: 'DIPINJAM',
+            value: '45',
+            icon: Icons.book,
+            iconColor: AppColors.warning,
+            bgColor: AppColors.warningLight,
+            shadowColor: AppColors.shadowAmber,
+          ),
         ],
       ),
     );
@@ -128,24 +148,24 @@ class HomePage extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        GridView.count(
-          crossAxisCount: 4,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.md,
-          crossAxisSpacing: AppSpacing.md,
-          childAspectRatio: 1,
-          children: [
-            _MenuCard(title: 'Katalog', icon: Icons.menu_book, color: AppColors.primary, onTap: () => context.go(RouteNames.home)),
-            _MenuCard(title: 'Peminjaman', icon: Icons.history, color: AppColors.secondary, onTap: () => context.go(RouteNames.home)),
-            _MenuCard(title: 'Riwayat', icon: Icons.list_alt, color: AppColors.warning, onTap: () => context.go(RouteNames.home)),
-            _MenuCard(title: 'Profile', icon: Icons.person, color: AppColors.success, onTap: () => context.go(RouteNames.home)),
-            if (isPetugas)
-              _MenuCard(title: 'Master', icon: Icons.settings, color: AppColors.textSecondary, onTap: () => context.go(RouteNames.home)),
-            if (isPetugas)
-              _MenuCard(title: 'Anggota', icon: Icons.group, color: AppColors.textSecondary, onTap: () => context.go(RouteNames.home)),
-          ],
-        ),
+          GridView.count(
+            crossAxisCount: 4,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: AppSpacing.md,
+            crossAxisSpacing: AppSpacing.md,
+            childAspectRatio: 1,
+            children: [
+              _MenuCard(title: 'Katalog', icon: Icons.menu_book, color: AppColors.primary, onTap: () => context.go(RouteNames.katalog)),
+              _MenuCard(title: 'Peminjaman', icon: Icons.history, color: AppColors.secondary, onTap: () => context.go(RouteNames.peminjaman)),
+              _MenuCard(title: 'Riwayat', icon: Icons.list_alt, color: AppColors.warning, onTap: () {}),
+              _MenuCard(title: 'Profil', icon: Icons.person, color: AppColors.success, onTap: () => context.go(RouteNames.profile)),
+              if (isPetugas)
+                _MenuCard(title: 'Master', icon: Icons.settings, color: AppColors.textSecondary, onTap: () {}),
+              if (isPetugas)
+                _MenuCard(title: 'Anggota', icon: Icons.group, color: AppColors.textSecondary, onTap: () {}),
+            ],
+          ),
       ],
     );
   }
@@ -180,65 +200,6 @@ class HomePage extends ConsumerWidget {
         context.go(RouteNames.login);
       }
     }
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-  final Color bgColor;
-
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-    required this.bgColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  value,
-                  style: AppTypography.heading2.copyWith(
-                    color: color,
-                    fontSize: 24,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  title,
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

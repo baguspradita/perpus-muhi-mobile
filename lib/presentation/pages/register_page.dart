@@ -95,23 +95,23 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     setState(() => _currentStep = 1);
   }
 
-  void _register() {
+  Future<void> _register() async {
     if (_step2Key.currentState?.validate() != true) return;
 
-    ref.read(authNotifierProvider.notifier).register(
-          nama: _namaController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          passwordConfirmation: _passwordConfirmController.text,
-          noTelp: _noTelpController.text.trim(),
-          alamat: _alamatController.text.trim(),
-          role: _selectedRole,
-          nisn: _selectedRole == 'siswa' ? _nisnController.text.trim() : null,
-          jurusanId: _selectedRole == 'siswa' ? _selectedJurusanId?.toString() : null,
-          kelas: _selectedRole == 'siswa' ? _selectedKelas : null,
-          nip: _selectedRole == 'guru' ? _nipController.text.trim() : null,
-          mapel: _selectedRole == 'guru' ? _mapelController.text.trim() : null,
-        );
+    final success = await ref.read(authNotifierProvider.notifier).register(
+      nama: _namaController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      passwordConfirmation: _passwordConfirmController.text,
+      noTelp: _noTelpController.text.trim(),
+      alamat: _alamatController.text.trim(),
+      role: _selectedRole,
+      nisn: _selectedRole == 'siswa' ? _nisnController.text.trim() : null,
+      jurusanId: _selectedRole == 'siswa' ? _selectedJurusanId?.toString() : null,
+      kelas: _selectedRole == 'siswa' ? _selectedKelas : null,
+      nip: _selectedRole == 'guru' ? _nipController.text.trim() : null,
+      mapel: _selectedRole == 'guru' ? _mapelController.text.trim() : null,
+    );
   }
 
   @override
@@ -208,7 +208,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 child: ChoiceChip(
                   label: const Text('Siswa'),
                   selected: _selectedRole == 'siswa',
-                  selectedColor: AppColors.primaryContainer,
+                  selectedColor: AppColors.primaryLight,
                   onSelected: (selected) {
                     if (selected) setState(() => _selectedRole = 'siswa');
                   },
@@ -219,7 +219,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 child: ChoiceChip(
                   label: const Text('Guru'),
                   selected: _selectedRole == 'guru',
-                  selectedColor: AppColors.primaryContainer,
+                  selectedColor: AppColors.primaryLight,
                   onSelected: (selected) {
                     if (selected) setState(() => _selectedRole = 'guru');
                   },
@@ -402,7 +402,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
+                color: AppColors.error.withAlpha(26),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(

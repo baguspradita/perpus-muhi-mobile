@@ -7,7 +7,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/validators.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/app_alert.dart';
 import '../widgets/app_button.dart';
+import '../widgets/app_text_field.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -29,24 +31,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    ref.read(authNotifierProvider.notifier).login(
+    final success = await ref.read(authNotifierProvider.notifier).login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+
+    if (!mounted) return;
+    if (success) {
+      context.go(RouteNames.home);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-
-    ref.listen(authNotifierProvider, (previous, next) {
-      if (next.isAuthenticated && next.user != null) {
-        context.go(RouteNames.home);
-      }
-    });
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -63,7 +64,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
@@ -73,65 +74,51 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Masuk ke Akun',
                   style: AppTypography.heading1,
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Masukkan email dan password Anda',
-                  style: AppTypography.bodyLarge,
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 32),
-                TextFormField(
+                AppTextField(
+                  labelText: 'Email',
+                  hintText: 'contoh@email.com',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
+                  prefixIcon: const Icon(Icons.email_outlined, size: 20),
                   validator: Validators.email,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                AppTextField(
+                  labelText: 'Password',
+                  hintText: 'Masukkan password',
                   controller: _passwordController,
                   obscureText: _isPasswordHidden,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordHidden
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() => _isPasswordHidden = !_isPasswordHidden);
-                      },
+                  prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordHidden
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
                     ),
+                    onPressed: () {
+                      setState(() => _isPasswordHidden = !_isPasswordHidden);
+                    },
                   ),
                   validator: Validators.password,
                 ),
                 if (authState.errorMessage.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            authState.errorMessage,
-                            style: const TextStyle(color: AppColors.error, fontSize: 14),
-                          ),
-                        ),
-                      ],
-                    ),
+                  AppAlert(
+                    message: authState.errorMessage,
+                    type: AppAlertType.error,
                   ),
                 ],
                 const SizedBox(height: 32),
@@ -145,9 +132,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'Belum punya akun? ',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     TextButton(
                       onPressed: () => context.go(RouteNames.register),

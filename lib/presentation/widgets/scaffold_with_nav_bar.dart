@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/routes/route_names.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   final Widget child;
@@ -44,7 +43,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
         selectedIndex: _calculateSelectedIndex(context),
         onDestinationSelected: (index) => _onItemTapped(context, index),
         backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primaryContainer,
+        indicatorColor: AppColors.primaryLight,
         surfaceTintColor: Colors.transparent,
         height: 64,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,

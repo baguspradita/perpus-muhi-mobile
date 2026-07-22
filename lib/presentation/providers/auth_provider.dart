@@ -1,6 +1,8 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/dependency_injection/injection_container.dart';
+import '../../core/errors/failures.dart';
 import '../../core/services/local_storage_service.dart';
 import '../../domain/entities/auth_token_entity.dart';
 import '../../domain/entities/user_entity.dart';
@@ -54,25 +56,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> initialize() async {
     state = state.copyWith(isLoading: true);
 
-    // Cek token dari SecureStorage dulu — kalau kosong, skip API call
     final token = await sl<LocalStorageService>().read('access_token');
     if (token == null || token.isEmpty) {
       state = state.copyWith(isLoading: false, isAuthenticated: false);
       return;
     }
 
-    // Token ada → validasi ke server (getProfile)
     final result = await _getProfileUseCase();
     result.fold(
       (failure) {
         state = state.copyWith(isLoading: false, isAuthenticated: false);
       },
       (user) {
-        state = state.copyWith(
-          isLoading: false,
-          isAuthenticated: true,
-          user: user,
-        );
+        state = state.copyWith(isLoading: false, isAuthenticated: true, user: user);
       },
     );
   }
@@ -81,7 +77,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(errorMessage: '');
   }
 
-  Future<void> register({
+  Future<bool> register({
     required String nama,
     required String email,
     required String password,
@@ -112,25 +108,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
       mapel: mapel,
     );
 
-    result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+    return result.fold(
+      (failure) async {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
       },
-      (authToken) {
-        state = state.copyWith(
-          isLoading: false,
-          authToken: authToken,
-          isAuthenticated: true,
-          errorMessage: '',
-        );
+      (authToken) async {
+        await sl<LocalStorageService>().write('access_token', authToken.accessToken);
+        state = state.copyWith(isLoading: false, authToken: authToken, isAuthenticated: true, errorMessage: '');
+        await loadUserProfile();
+        return true;
       },
     );
   }
 
-  Future<void> login({
+  Future<bool> login({
     required String email,
     required String password,
   }) async {
@@ -138,21 +130,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     final result = await _loginUseCase(email: email, password: password);
 
-    result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+    return result.fold(
+      (failure) async {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
       },
       (authToken) async {
-        state = state.copyWith(
-          isLoading: false,
-          authToken: authToken,
-          isAuthenticated: true,
-          errorMessage: '',
-        );
+        await sl<LocalStorageService>().write('access_token', authToken.accessToken);
+        state = state.copyWith(isLoading: false, authToken: authToken, isAuthenticated: true, errorMessage: '');
         await loadUserProfile();
+        return true;
       },
     );
   }
@@ -161,10 +148,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final result = await _getProfileUseCase();
     result.fold(
       (failure) {
-        state = state.copyWith(
-          isAuthenticated: false,
-          errorMessage: failure.message,
-        );
+        if (!state.isAuthenticated) {
+          state = state.copyWith(isAuthenticated: false, errorMessage: failure.message);
+        }
       },
       (user) {
         state = state.copyWith(user: user);
@@ -179,10 +165,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     result.fold(
       (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
       },
       (_) {
         state = const AuthState();

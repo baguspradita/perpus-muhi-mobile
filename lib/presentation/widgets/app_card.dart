@@ -6,6 +6,7 @@ class AppCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
   final double? height;
+  final Color? shadowColor;
 
   const AppCard({
     super.key,
@@ -13,19 +14,22 @@ class AppCard extends StatelessWidget {
     this.padding,
     this.onTap,
     this.height,
+    this.shadowColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveShadow = shadowColor ?? AppColors.shadowIndigo;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       height: height,
       child: Card(
-        elevation: onTap != null ? 1 : 1,
-        shadowColor: Colors.black.withValues(alpha: 0.05),
+        elevation: 0,
+        shadowColor: effectiveShadow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.border),
+          side: BorderSide(color: AppColors.divider),
         ),
         color: AppColors.surface,
         margin: EdgeInsets.zero,

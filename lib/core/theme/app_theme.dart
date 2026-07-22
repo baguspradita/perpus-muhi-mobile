@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
-import 'app_spacing.dart';
 import 'app_typography.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
+      colorScheme: ColorScheme(
+        brightness: Brightness.light,
         primary: AppColors.primary,
-        secondary: AppColors.secondary,
-        surface: AppColors.background,
-        error: AppColors.error,
         onPrimary: Colors.white,
+        secondary: AppColors.secondary,
+        onSecondary: Colors.white,
+        error: AppColors.error,
+        onError: Colors.white,
+        surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
       ),
       scaffoldBackgroundColor: AppColors.background,
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
         backgroundColor: AppColors.surface,
@@ -30,8 +31,8 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shadowColor: AppColors.primary.withValues(alpha: 0.3),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shadowColor: AppColors.primary.withAlpha(77),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -42,7 +43,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -59,7 +60,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.border),
@@ -80,17 +81,17 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        labelStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
-        hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textHint),
+        labelStyle: AppTypography.label,
+        hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textMuted),
         errorStyle: AppTypography.bodySmall.copyWith(color: AppColors.error),
-        floatingLabelStyle: AppTypography.bodyMedium.copyWith(color: AppColors.primary),
+        floatingLabelStyle: AppTypography.label.copyWith(color: AppColors.primary),
       ),
       cardTheme: CardThemeData(
-        elevation: 1,
-        shadowColor: Colors.black.withValues(alpha: 0.05),
+        elevation: 0,
+        shadowColor: AppColors.primary.withAlpha(38),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.border),
+          side: const BorderSide(color: AppColors.divider),
         ),
         color: AppColors.surface,
         margin: const EdgeInsets.all(0),
@@ -105,7 +106,14 @@ class AppTheme {
         backgroundColor: AppColors.textPrimary,
         contentTextStyle: AppTypography.bodyMedium.copyWith(color: Colors.white),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        actionTextColor: AppColors.primaryLight,
+        actionTextColor: AppColors.primaryLight.withAlpha(200),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.surface,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textMuted,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
       ),
     );
   }

@@ -4,9 +4,21 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:logger/logger.dart';
 
 import '../../data/datasources/auth_remote_datasource.dart';
+import '../../data/datasources/buku_remote_datasource.dart';
+import '../../data/datasources/peminjaman_remote_datasource.dart';
+import '../../data/datasources/profile_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/repositories/buku_repository_impl.dart';
+import '../../data/repositories/peminjaman_repository_impl.dart';
+import '../../data/repositories/profile_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/repositories/buku_repository.dart';
+import '../../domain/repositories/peminjaman_repository.dart';
+import '../../domain/repositories/profile_repository.dart';
 import '../../domain/usecases/auth_usecases.dart';
+import '../../domain/usecases/buku_usecases.dart';
+import '../../domain/usecases/peminjaman_usecases.dart';
+import '../../domain/usecases/profile_usecases.dart';
 import '../constants/api_constants.dart';
 import '../constants/app_constants.dart';
 import '../errors/error_handler.dart';
@@ -40,6 +52,15 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSource(sl<ApiClient>()),
   );
+  sl.registerLazySingleton<BukuRemoteDataSource>(
+    () => BukuRemoteDataSource(sl<ApiClient>()),
+  );
+  sl.registerLazySingleton<PeminjamanRemoteDataSource>(
+    () => PeminjamanRemoteDataSource(sl<ApiClient>()),
+  );
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSource(sl<ApiClient>()),
+  );
 
   // ═══════════════════════════════════════════
   // Repositories
@@ -49,6 +70,15 @@ Future<void> initDependencies() async {
           remoteDataSource: sl<AuthRemoteDataSource>(),
           localStorageService: sl<LocalStorageService>(),
         ),
+  );
+  sl.registerLazySingleton<BukuRepository>(
+    () => BukuRepositoryImpl(remoteDataSource: sl<BukuRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<PeminjamanRepository>(
+    () => PeminjamanRepositoryImpl(remoteDataSource: sl<PeminjamanRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDataSource: sl<ProfileRemoteDataSource>()),
   );
 
   // ═══════════════════════════════════════════
@@ -68,6 +98,36 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton<AutoLoginUseCase>(
     () => AutoLoginUseCase(sl<AuthRepository>()),
+  );
+  sl.registerLazySingleton<GetAllBukuUseCase>(
+    () => GetAllBukuUseCase(sl<BukuRepository>()),
+  );
+  sl.registerLazySingleton<GetBukuByIdUseCase>(
+    () => GetBukuByIdUseCase(sl<BukuRepository>()),
+  );
+  sl.registerLazySingleton<GetPeminjamanListUseCase>(
+    () => GetPeminjamanListUseCase(sl<PeminjamanRepository>()),
+  );
+  sl.registerLazySingleton<GetRiwayatPeminjamanUseCase>(
+    () => GetRiwayatPeminjamanUseCase(sl<PeminjamanRepository>()),
+  );
+  sl.registerLazySingleton<GetDashboardUseCase>(
+    () => GetDashboardUseCase(sl<PeminjamanRepository>()),
+  );
+  sl.registerLazySingleton<CreatePeminjamanUseCase>(
+    () => CreatePeminjamanUseCase(sl<PeminjamanRepository>()),
+  );
+  sl.registerLazySingleton<KembaliPeminjamanUseCase>(
+    () => KembaliPeminjamanUseCase(sl<PeminjamanRepository>()),
+  );
+  sl.registerLazySingleton<ShowProfileUseCase>(
+    () => ShowProfileUseCase(sl<ProfileRepository>()),
+  );
+  sl.registerLazySingleton<UpdateProfileUseCase>(
+    () => UpdateProfileUseCase(sl<ProfileRepository>()),
+  );
+  sl.registerLazySingleton<UpdatePasswordUseCase>(
+    () => UpdatePasswordUseCase(sl<ProfileRepository>()),
   );
 }
 

@@ -120,7 +120,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.white.withAlpha(204),
                           letterSpacing: 2,
                         ),
                       ),
@@ -184,6 +184,7 @@ class _LoadingDotState extends State<_LoadingDot>
     return AnimatedBuilder(
       animation: _anim,
       builder: (context, child) {
+        final opacity = _anim.value;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: AnimatedContainer(
@@ -192,9 +193,7 @@ class _LoadingDotState extends State<_LoadingDot>
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: Colors.white
-                  .withValues(alpha: 0.9)
-                  .withValues(alpha: _anim.value),
+              color: Colors.white.withAlpha((opacity * 255).round()),
               shape: BoxShape.circle,
             ),
           ),

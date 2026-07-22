@@ -85,7 +85,7 @@ EdgeInsets get _padding {
           backgroundColor: _backgroundColor,
           foregroundColor: _foregroundColor,
           elevation: _isPressed ? 0 : 2,
-          shadowColor: AppColors.primary.withValues(alpha: 0.3),
+          shadowColor: AppColors.primary.withAlpha(77),
           padding: _padding,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

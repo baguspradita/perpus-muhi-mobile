@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../core/errors/exceptions.dart';
 import '../../core/network/api_client.dart';
 import '../../domain/entities/auth_token_entity.dart';
@@ -7,6 +9,34 @@ class AuthRemoteDataSource {
   final ApiClient _apiClient;
 
   AuthRemoteDataSource(this._apiClient);
+
+  Future<AuthTokenEntity> _handleAuthResponse(String path, Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post<Map<String, dynamic>>(
+        path,
+        data: data,
+      );
+
+      final body = response.data;
+      if (body == null) throw ServerException('Response kosong dari server');
+
+      final success = body['success'] as bool? ?? false;
+      if (!success) throw ServerException(body['message'] as String? ?? 'Gagal');
+
+      final responseData = body['data'] as Map<String, dynamic>?;
+      if (responseData == null) throw ServerException('Data tidak ditemukan');
+
+      return AuthTokenEntity(
+        accessToken: responseData['token'] as String? ?? '',
+        tokenType: 'bearer',
+        expiresIn: 3600,
+      );
+    } on ServerException {
+      rethrow;
+    } on DioException {
+      rethrow;
+    }
+  }
 
   Future<AuthTokenEntity> register({
     required String nama,
@@ -41,72 +71,56 @@ class AuthRemoteDataSource {
       formData['mapel'] = mapel;
     }
 
-    final response = await _apiClient.post<Map<String, dynamic>>(
-      '/auth/register',
-      data: formData,
-    );
-
-    if (response.success && response.data != null) {
-      final data = response.data!;
-      return AuthTokenEntity(
-        accessToken: data['data']?['token'] as String? ?? '',
-        tokenType: 'bearer',
-        expiresIn: 3600,
-      );
-    }
-
-    throw ServerException(response.message);
+    return _handleAuthResponse('/auth/register', formData);
   }
 
   Future<AuthTokenEntity> login({
     required String email,
     required String password,
   }) async {
-    final formData = <String, dynamic>{
+    return _handleAuthResponse('/auth/login', {
       'email': email,
       'password': password,
-    };
-
-    final response = await _apiClient.post<Map<String, dynamic>>(
-      '/auth/login',
-      data: formData,
-    );
-
-    if (response.success && response.data != null) {
-      final data = response.data!;
-      return AuthTokenEntity(
-        accessToken: data['data']?['token'] as String? ?? '',
-        tokenType: 'bearer',
-        expiresIn: 3600,
-      );
-    }
-
-    throw ServerException(response.message);
+    });
   }
 
   Future<void> logout(String token) async {
-    final response = await _apiClient.post<Map<String, dynamic>>(
-      '/auth/logout',
-      data: {'token': token},
-    );
+    try {
+      final response = await _apiClient.dio.post<Map<String, dynamic>>(
+        '/auth/logout',
+        data: {'token': token},
+      );
 
-    if (!response.success) {
-      throw ServerException(response.message);
+      final body = response.data;
+      if (body == null) throw ServerException('Response kosong dari server');
+
+      final success = body['success'] as bool? ?? false;
+      if (!success) throw ServerException(body['message'] as String? ?? 'Gagal');
+    } on ServerException {
+      rethrow;
+    } on DioException {
+      rethrow;
     }
   }
 
   Future<UserEntity?> getCurrentUser() async {
-    final response = await _apiClient.get<Map<String, dynamic>>(
-      '/auth/me',
-    );
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>('/auth/me');
+      final body = response.data;
+      if (body == null) return null;
 
-    if (response.success && response.data != null) {
-      final userData = response.data!['data'] as Map<String, dynamic>?;
-      if (userData != null) {
-        return UserEntity.fromJson(userData);
-      }
+      final success = body['success'] as bool? ?? false;
+      if (!success) return null;
+
+      final responseData = body['data'] as Map<String, dynamic>?;
+      if (responseData == null) return null;
+
+      final userData = responseData['user'] as Map<String, dynamic>?;
+      if (userData == null) return null;
+
+      return UserEntity.fromJson({'user': userData});
+    } on DioException {
+      rethrow;
     }
-
-    return null;
   }
 }

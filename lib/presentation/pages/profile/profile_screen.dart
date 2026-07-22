@@ -6,9 +6,12 @@ import '../../../core/routes/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../domain/entities/user_entity.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/app_badge.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/page_header.dart';
+import '../../widgets/user_avatar.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -22,80 +25,79 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Profil'),
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 32,
-                      child: Icon(Icons.person, size: 32),
+            PageHeader(
+              title: 'Akun Saya',
+              subtitle: 'Kelola informasi profil Anda',
+            ),
+            AppCard(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                children: [
+                  UserAvatar(
+                    name: user?.nama ?? 'U',
+                    size: 64,
+                    showBorder: true,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.nama ?? '-',
+                          style: AppTypography.heading3,
+                        ),
+                        Text(
+                          user?.email ?? '-',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        AppBadge(
+                          text: _roleLabel(user?.role),
+                          variant: AppBadgeVariant.info,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user?.nama ?? '-',
-                            style: AppTypography.heading3.copyWith(color: AppColors.textPrimary),
-                          ),
-                          Text(
-                            user?.email ?? '-',
-                            style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
-                          ),
-                          const SizedBox(height: 4),
-                          Chip(
-                            label: Text(
-                              _roleLabel(user?.role),
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                            backgroundColor: AppColors.primary,
-                            padding: EdgeInsets.zero,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Informasi Akun',
-                      style: AppTypography.heading3.copyWith(color: AppColors.textPrimary),
-                    ),
-                    const SizedBox(height: 12),
-                    _infoRow('Nama', user?.nama ?? '-'),
-                    _infoRow('Email', user?.email ?? '-'),
-                    _infoRow('Role', _roleLabel(user?.role)),
-                    if (user?.role == 'siswa') ...[
-                      _infoRow('NISN', user?.nisn ?? '-'),
-                      _infoRow('Kelas', user?.kelas?.toString() ?? '-'),
-                      _infoRow('Jurusan', user?.jurusan ?? '-'),
-                    ],
-                    if (user?.role == 'guru') ...[
-                      _infoRow('NIP', user?.nip ?? '-'),
-                      _infoRow('Mapel', user?.mapel ?? '-'),
-                    ],
+            const SizedBox(height: AppSpacing.xl),
+            AppCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Informasi Akun',
+                    style: AppTypography.heading3,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _infoRow('Nama', user?.nama ?? '-'),
+                  _infoRow('Email', user?.email ?? '-'),
+                  _infoRow('Role', _roleLabel(user?.role)),
+                  if (user?.role == 'siswa') ...[
+                    _infoRow('NISN', user?.nisn ?? '-'),
+                    _infoRow('Kelas', user?.kelas?.toString() ?? '-'),
+                    _infoRow('Jurusan', user?.jurusan ?? '-'),
                   ],
-                ),
+                  if (user?.role == 'guru') ...[
+                    _infoRow('NIP', user?.nip ?? '-'),
+                    _infoRow('Mapel', user?.mapel ?? '-'),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             SizedBox(
               width: double.infinity,
               child: AppButton(
