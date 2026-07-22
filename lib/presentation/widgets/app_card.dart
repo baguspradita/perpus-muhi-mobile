@@ -19,7 +19,7 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveShadow = shadowColor ?? AppColors.shadowIndigo;
+    final effectiveShadow = shadowColor ?? AppColors.shadowPrimary;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),

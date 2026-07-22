@@ -35,3 +35,13 @@ class GetBukuByIdUseCase {
     return _repository.getBukuById(id);
   }
 }
+
+class GetFiltersUseCase {
+  final BukuRepository _repository;
+
+  GetFiltersUseCase(this._repository);
+
+  Future<Either<Failure, Map<String, dynamic>>> call() async {
+    return _repository.getFilters();
+  }
+}

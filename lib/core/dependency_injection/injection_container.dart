@@ -105,6 +105,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<GetBukuByIdUseCase>(
     () => GetBukuByIdUseCase(sl<BukuRepository>()),
   );
+  sl.registerLazySingleton<GetFiltersUseCase>(
+    () => GetFiltersUseCase(sl<BukuRepository>()),
+  );
   sl.registerLazySingleton<GetPeminjamanListUseCase>(
     () => GetPeminjamanListUseCase(sl<PeminjamanRepository>()),
   );

@@ -11,7 +11,10 @@ Failure mapExceptionToFailure(AppException exception) {
   } else if (exception is UnauthorizedException) {
     return UnauthorizedFailure(exception.message, statusCode: exception.statusCode);
   } else if (exception is ValidationException) {
-    return ValidationFailure(exception.message, errors: exception.errors, statusCode: exception.statusCode);
+    final combinedMessage = exception.errors.entries
+        .map((e) => '${e.key}: ${(e.value as List).join(', ')}')
+        .join('\n');
+    return ValidationFailure(combinedMessage, errors: exception.errors, statusCode: exception.statusCode);
   } else if (exception is NotFoundException) {
     return NotFoundFailure(exception.message, statusCode: exception.statusCode);
   } else {

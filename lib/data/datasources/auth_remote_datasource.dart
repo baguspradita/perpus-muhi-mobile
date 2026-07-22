@@ -15,13 +15,24 @@ class AuthRemoteDataSource {
       final response = await _apiClient.dio.post<Map<String, dynamic>>(
         path,
         data: data,
+        options: Options(validateStatus: (s) => s != null && s < 500),
       );
 
       final body = response.data;
       if (body == null) throw ServerException('Response kosong dari server');
 
       final success = body['success'] as bool? ?? false;
-      if (!success) throw ServerException(body['message'] as String? ?? 'Gagal');
+      if (!success) {
+        final errors = body['errors'] as Map<String, dynamic>?;
+        if (errors != null && errors.isNotEmpty) {
+          throw ValidationException(
+            body['message'] as String? ?? 'Validation Error',
+            errors: errors,
+            statusCode: response.statusCode,
+          );
+        }
+        throw ServerException(body['message'] as String? ?? 'Gagal');
+      }
 
       final responseData = body['data'] as Map<String, dynamic>?;
       if (responseData == null) throw ServerException('Data tidak ditemukan');
@@ -33,7 +44,7 @@ class AuthRemoteDataSource {
       );
     } on ServerException {
       rethrow;
-    } on DioException {
+    } on ValidationException {
       rethrow;
     }
   }

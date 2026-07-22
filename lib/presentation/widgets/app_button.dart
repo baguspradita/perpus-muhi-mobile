@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_typography.dart';
 
 enum AppButtonType { primary, secondary, outline, danger }
@@ -60,7 +62,7 @@ class _AppButtonState extends State<AppButton> {
   }
 
 EdgeInsets get _padding {
-    return const EdgeInsets.symmetric(horizontal: 24, vertical: 16);
+    return EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg);
   }
 
   @override
@@ -88,7 +90,7 @@ EdgeInsets get _padding {
           shadowColor: AppColors.primary.withAlpha(77),
           padding: _padding,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.rMd,
             side: BorderSide(
               color: _borderColor,
               width: widget.type == AppButtonType.outline ? 1.5 : 0,

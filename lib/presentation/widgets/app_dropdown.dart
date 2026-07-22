@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -42,34 +44,34 @@ class AppDropdown extends StatelessWidget {
         DropdownButtonFormField<String>(
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: AppTypography.input.copyWith(
+            hintStyle: AppTypography.bodyMedium.copyWith(
               color: AppColors.textSecondary,
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             filled: true,
             fillColor: AppColors.surface,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.rMd,
               borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.rMd,
               borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.rMd,
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.rMd,
               borderSide: const BorderSide(color: AppColors.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.rMd,
               borderSide: const BorderSide(color: AppColors.error, width: 2),
             ),
           ),
-          style: AppTypography.input,
+          style: AppTypography.bodyMedium,
           value: value,
           items: options.map((String option) {
             return DropdownMenuItem<String>(

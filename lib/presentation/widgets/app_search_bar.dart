@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -19,10 +21,10 @@ class AppSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
@@ -35,7 +37,7 @@ class AppSearchBar extends StatelessWidget {
       child: Row(
         children: [
           prefixIcon ?? const Icon(Icons.search, color: AppColors.textMuted, size: 20),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: TextField(
               decoration: InputDecoration(
@@ -45,7 +47,7 @@ class AppSearchBar extends StatelessWidget {
                 ),
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               ),
               style: AppTypography.bodyMedium,
               onChanged: onChanged,

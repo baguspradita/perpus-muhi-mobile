@@ -13,4 +13,6 @@ abstract class BukuRepository {
   });
 
   Future<Either<Failure, BukuEntity>> getBukuById(int id);
+
+  Future<Either<Failure, Map<String, dynamic>>> getFilters();
 }

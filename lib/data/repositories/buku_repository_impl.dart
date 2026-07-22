@@ -48,4 +48,16 @@ class BukuRepositoryImpl implements BukuRepository {
       return Left(ServerFailure('Terjadi kesalahan: ${e.toString()}'));
     }
   }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getFilters() async {
+    try {
+      final filters = await _remoteDataSource.getFilters();
+      return Right(filters);
+    } on AppException catch (e) {
+      return Left(mapExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure('Terjadi kesalahan: ${e.toString()}'));
+    }
+  }
 }

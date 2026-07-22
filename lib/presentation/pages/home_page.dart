@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../domain/entities/user_entity.dart';
 import '../providers/auth_provider.dart';
+import '../providers/dashboard_provider.dart';
 import '../widgets/app_card.dart';
 import '../widgets/stat_card.dart';
 
@@ -47,11 +48,6 @@ class HomePage extends ConsumerWidget {
               ),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Keluar',
-            onPressed: () => _confirmLogout(context, ref),
-          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -61,7 +57,7 @@ class HomePage extends ConsumerWidget {
           children: [
             _buildGreeting(context, user),
             const SizedBox(height: AppSpacing.xl),
-            _buildStatsSection(context),
+            _buildStatsSection(context, ref),
             const SizedBox(height: AppSpacing.xxl),
             _buildMenuSection(context, authState),
           ],
@@ -99,36 +95,39 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsSection(BuildContext context) {
+  Widget _buildStatsSection(BuildContext context, WidgetRef ref) {
+    final dashboardState = ref.watch(dashboardProvider);
+    final d = dashboardState.dashboard;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
           StatCard(
             title: 'TOTAL BUKU',
-            value: '1,245',
+            value: d?.totalBuku.toString() ?? '-',
             icon: Icons.library_books,
             iconColor: AppColors.primary,
             bgColor: AppColors.primaryLight,
-            shadowColor: AppColors.shadowIndigo,
+            shadowColor: AppColors.shadowPrimary,
           ),
           const SizedBox(width: AppSpacing.md),
           StatCard(
             title: 'TOTAL ANGGOTA',
-            value: '890',
+            value: d?.totalAnggota.toString() ?? '-',
             icon: Icons.people,
             iconColor: AppColors.success,
             bgColor: AppColors.successLight,
-            shadowColor: AppColors.shadowEmerald,
+            shadowColor: AppColors.shadowLight,
           ),
           const SizedBox(width: AppSpacing.md),
           StatCard(
             title: 'DIPINJAM',
-            value: '45',
+            value: d?.peminjamanAktif.toString() ?? '-',
             icon: Icons.book,
             iconColor: AppColors.warning,
             bgColor: AppColors.warningLight,
-            shadowColor: AppColors.shadowAmber,
+            shadowColor: AppColors.shadowLight,
           ),
         ],
       ),
@@ -138,70 +137,43 @@ class HomePage extends ConsumerWidget {
   Widget _buildMenuSection(BuildContext context, AuthState authState) {
     final isPetugas = authState.user?.role == 'petugas';
 
+    final items = [
+      {'title': 'Katalog', 'icon': Icons.menu_book, 'color': AppColors.primary, 'onTap': () => context.go(RouteNames.katalog)},
+      {'title': 'Peminjaman', 'icon': Icons.history, 'color': AppColors.secondary, 'onTap': () => context.go(RouteNames.peminjaman)},
+      {'title': 'Riwayat', 'icon': Icons.list_alt, 'color': AppColors.warning, 'onTap': () => context.go('/riwayat')},
+      {'title': 'Profil', 'icon': Icons.person, 'color': AppColors.success, 'onTap': () => context.go(RouteNames.profile)},
+      if (isPetugas) {'title': 'Master', 'icon': Icons.settings, 'color': AppColors.textSecondary, 'onTap': () {}},
+      if (isPetugas) {'title': 'Anggota', 'icon': Icons.group, 'color': AppColors.textSecondary, 'onTap': () {}},
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Akses Cepat',
-          style: AppTypography.heading2.copyWith(
-            color: AppColors.textPrimary,
-          ),
+          style: AppTypography.heading2.copyWith(color: AppColors.textPrimary),
         ),
         const SizedBox(height: AppSpacing.lg),
-          GridView.count(
-            crossAxisCount: 4,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: AppSpacing.md,
-            crossAxisSpacing: AppSpacing.md,
-            childAspectRatio: 1,
-            children: [
-              _MenuCard(title: 'Katalog', icon: Icons.menu_book, color: AppColors.primary, onTap: () => context.go(RouteNames.katalog)),
-              _MenuCard(title: 'Peminjaman', icon: Icons.history, color: AppColors.secondary, onTap: () => context.go(RouteNames.peminjaman)),
-              _MenuCard(title: 'Riwayat', icon: Icons.list_alt, color: AppColors.warning, onTap: () {}),
-              _MenuCard(title: 'Profil', icon: Icons.person, color: AppColors.success, onTap: () => context.go(RouteNames.profile)),
-              if (isPetugas)
-                _MenuCard(title: 'Master', icon: Icons.settings, color: AppColors.textSecondary, onTap: () {}),
-              if (isPetugas)
-                _MenuCard(title: 'Anggota', icon: Icons.group, color: AppColors.textSecondary, onTap: () {}),
-            ],
-          ),
+        GridView.count(
+          crossAxisCount: 4,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
+          childAspectRatio: 0.9,
+          children: items.map((item) => _MenuCard(
+            title: item['title'] as String,
+            icon: item['icon'] as IconData,
+            color: item['color'] as Color,
+            onTap: item['onTap'] as VoidCallback,
+          )).toList(),
+        ),
       ],
     );
   }
 
-  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Konfirmasi'),
-        content: const Text('Apakah Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Keluar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      await ref.read(authNotifierProvider.notifier).logout();
-      if (context.mounted) {
-        context.go(RouteNames.login);
-      }
-    }
-  }
 }
+
 
 class _MenuCard extends StatelessWidget {
   final String title;

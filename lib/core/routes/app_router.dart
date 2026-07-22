@@ -8,6 +8,7 @@ import '../../presentation/pages/splash_page.dart';
 import '../../presentation/pages/katalog/katalog_screen.dart';
 import '../../presentation/pages/peminjaman/peminjaman_list_screen.dart';
 import '../../presentation/pages/profile/profile_screen.dart';
+import '../../presentation/pages/peminjaman/riwayat_screen.dart';
 import '../../presentation/widgets/scaffold_with_nav_bar.dart';
 import '../routes/route_names.dart';
 
@@ -44,6 +45,10 @@ final router = GoRouter(
         GoRoute(
           path: RouteNames.profile,
           builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.riwayat,
+          builder: (context, state) => const RiwayatScreen(),
         ),
       ],
     ),

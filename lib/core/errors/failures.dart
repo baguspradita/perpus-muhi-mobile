@@ -23,7 +23,16 @@ class UnauthorizedFailure extends Failure {
 class ValidationFailure extends Failure {
   final Map<String, dynamic> errors;
 
-  ValidationFailure(super.message, {required this.errors, super.statusCode});
+  ValidationFailure(String message, {required this.errors, super.statusCode})
+      : super(_combineErrors(message, errors));
+
+  static String _combineErrors(String message, Map<String, dynamic> errors) {
+    if (errors.isEmpty) return message;
+    final details = errors.entries
+        .map((e) => '${e.key}: ${(e.value as List).join(', ')}')
+        .join('\n');
+    return details;
+  }
 }
 
 class NotFoundFailure extends Failure {

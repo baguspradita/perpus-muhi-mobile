@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
-    return ThemeData(
+    final baseTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme(
         brightness: Brightness.light,
@@ -115,6 +116,10 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
+    );
+
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.interTextTheme(baseTheme.textTheme),
     );
   }
 }

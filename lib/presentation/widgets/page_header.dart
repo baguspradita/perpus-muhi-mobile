@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -30,7 +32,7 @@ class PageHeader extends StatelessWidget {
                   style: AppTypography.heading2,
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle!,
                     style: AppTypography.bodyMedium.copyWith(
@@ -42,7 +44,7 @@ class PageHeader extends StatelessWidget {
             ),
           ),
           if (actions != null) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             actions!,
           ],
         ],

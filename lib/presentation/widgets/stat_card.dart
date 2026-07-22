@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -26,10 +28,10 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 160,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: bgColor ?? AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.borderLight),
         boxShadow: [
           BoxShadow(
@@ -54,7 +56,7 @@ class StatCard extends StatelessWidget {
                     letterSpacing: 0.05,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   value,
                   style: AppTypography.statNumber.copyWith(fontSize: 24),
@@ -74,7 +76,7 @@ class StatCard extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: bgColor?.withAlpha(100) ?? AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.rMd,
               ),
               child: Icon(
                 icon,

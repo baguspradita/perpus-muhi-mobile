@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/dependency_injection/injection_container.dart';
-import '../../core/errors/failures.dart';
 import '../../core/services/local_storage_service.dart';
 import '../../domain/entities/auth_token_entity.dart';
 import '../../domain/entities/user_entity.dart';
@@ -68,7 +67,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = state.copyWith(isLoading: false, isAuthenticated: false);
       },
       (user) {
-        state = state.copyWith(isLoading: false, isAuthenticated: true, user: user);
+        if (user.role == 'petugas') {
+          state = state.copyWith(
+            isLoading: false,
+            isAuthenticated: false,
+            errorMessage: 'Akun petugas tidak dapat mengakses aplikasi mobile. Silakan gunakan website admin.',
+          );
+          sl<LocalStorageService>().delete('access_token');
+        } else {
+          state = state.copyWith(isLoading: false, isAuthenticated: true, user: user);
+        }
       },
     );
   }
@@ -139,6 +147,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await sl<LocalStorageService>().write('access_token', authToken.accessToken);
         state = state.copyWith(isLoading: false, authToken: authToken, isAuthenticated: true, errorMessage: '');
         await loadUserProfile();
+        if (state.user?.role == 'petugas') {
+          await sl<LocalStorageService>().delete('access_token');
+          state = const AuthState(
+            isLoading: false,
+            isAuthenticated: false,
+            errorMessage: 'Akses tidak diizinkan: akun petugas tidak dapat menggunakan aplikasi mobile. Silakan gunakan website admin.',
+          );
+          return false;
+        }
         return true;
       },
     );

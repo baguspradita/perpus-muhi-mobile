@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -36,7 +38,7 @@ class AppBadge extends StatelessWidget {
       padding: padding ?? const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       decoration: BoxDecoration(
         color: bgColors[variant],
-        borderRadius: BorderRadius.circular(9999),
+        borderRadius: AppRadius.rPill,
         border: AppBadgeVariant.defaultType == variant
             ? null
             : Border.all(color: bgColors[variant]!.withAlpha(100)),

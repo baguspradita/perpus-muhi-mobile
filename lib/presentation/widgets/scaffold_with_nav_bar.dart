@@ -14,7 +14,8 @@ class ScaffoldWithNavBar extends StatelessWidget {
     if (location.startsWith('/home')) return 0;
     if (location.startsWith('/katalog')) return 1;
     if (location.startsWith('/peminjaman')) return 2;
-    if (location.startsWith('/profile')) return 3;
+    if (location.startsWith('/riwayat')) return 3;
+    if (location.startsWith('/profile')) return 4;
     return 0;
   }
 
@@ -30,6 +31,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
         context.go('/peminjaman');
         break;
       case 3:
+        context.go('/riwayat');
+        break;
+      case 4:
         context.go('/profile');
         break;
     }
@@ -59,9 +63,14 @@ class ScaffoldWithNavBar extends StatelessWidget {
             label: 'Katalog',
           ),
           NavigationDestination(
+            icon: Icon(Icons.book_outlined),
+            selectedIcon: Icon(Icons.book, color: AppColors.primary),
+            label: 'Pinjam',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.history_outlined),
             selectedIcon: Icon(Icons.history, color: AppColors.primary),
-            label: 'Peminjaman',
+            label: 'Riwayat',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outlined),

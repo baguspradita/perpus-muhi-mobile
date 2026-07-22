@@ -3,15 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/entities/buku_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/katalog_provider.dart';
 import '../../widgets/app_search_bar.dart';
-import '../../widgets/book_card.dart';
+import '../../widgets/banner_carousel.dart';
+import '../../widgets/book_scroll_widgets.dart';
+import '../../widgets/category_chips.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_shimmer.dart';
-import '../../widgets/page_header.dart';
+import 'book_detail_screen.dart';
 
 class KatalogScreen extends ConsumerStatefulWidget {
   const KatalogScreen({super.key});
@@ -22,6 +25,20 @@ class KatalogScreen extends ConsumerStatefulWidget {
 
 class _KatalogScreenState extends ConsumerState<KatalogScreen> {
   final _searchController = TextEditingController();
+  int _selectedCategoryIndex = 0;
+  bool _filtersLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Trigger load data when provider is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_filtersLoaded) {
+        ref.read(katalogProvider.notifier).loadData();
+        _filtersLoaded = true;
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -33,42 +50,82 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
   Widget build(BuildContext context) {
     final katalogState = ref.watch(katalogProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Katalog Buku'),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PageHeader(
-                  title: 'Katalog Buku',
-                  subtitle: 'Jelajahi dan temukan buku favoritmu',
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppSearchBar(
-                  hintText: 'Cari judul buku atau penulis...',
-                ),
-              ],
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            bottom: AppSpacing.md,
+          ),
+          color: AppColors.surface,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('iPustaka', style: AppTypography.display),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.chat_outlined),
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              AppSearchBar(
+                hintText: 'Cari judul buku atau penulis...',
+                onChanged: (value) {
+                  ref.read(katalogProvider.notifier).loadData(search: value);
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        if (katalogState.isLoading || !_filtersLoaded) ...[
+          SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              itemCount: 4,
+              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 80,
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppColors.categoryBg,
+                    borderRadius: AppRadius.rXl,
+                    border: Border.all(color: AppColors.borderLight, width: 1),
+                  ),
+                );
+              },
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Expanded(
-            child: katalogState.isLoading
-                ? _buildLoadingState()
-                : katalogState.errorMessage.isNotEmpty
-                    ? _buildErrorState(katalogState.errorMessage)
-                    : _buildKatalogList(katalogState),
+        ] else ...[
+          CategoryChipsScroll(
+            categories: CategoryItem.fromApiData(
+                (katalogState.filters['kategori'] as List? ?? []),
+            ),
+            selectedIndex: _selectedCategoryIndex,
+            onCategorySelected: (index) {
+              setState(() => _selectedCategoryIndex = index);
+            },
           ),
         ],
-      ),
+        const SizedBox(height: AppSpacing.md),
+        Expanded(
+          child: katalogState.isLoading
+              ? _buildLoadingState()
+              : katalogState.errorMessage.isNotEmpty
+                  ? _buildErrorState(katalogState.errorMessage)
+                  : _buildKatalogList(katalogState),
+        ),
+      ],
     );
   }
 
@@ -97,7 +154,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
           subtitle: error,
           actionLabel: 'Coba Lagi',
           onAction: () {
-            ref.read(katalogProvider.notifier).loadBuku();
+            ref.read(katalogProvider.notifier).loadData();
           },
         ),
       ),
@@ -117,7 +174,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
                 : 'Data buku akan muncul di sini setelah diambil dari server.',
             actionLabel: state.searchQuery.isNotEmpty ? 'Hapus Filter' : 'Muat Ulang',
             onAction: () {
-              ref.read(katalogProvider.notifier).loadBuku(
+              ref.read(katalogProvider.notifier).loadData(
                     search: state.searchQuery.isEmpty ? null : '',
                   );
             },
@@ -126,160 +183,54 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
-      itemCount: state.bukuList.length,
-      itemBuilder: (context, index) {
-        final buku = state.bukuList[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: BookCard(
-            title: buku.judul,
-            author: buku.penulis,
-            kategori: buku.namaKategori ?? 'Umum',
-            isAvailable: buku.status == 'tersedia',
-            coverColor: _getCoverColor(buku.id),
-            onTap: () => _showBookDetail(context, buku),
+    final popular = state.bukuList.take(6).toList();
+    final recommended = state.bukuList.length > 6
+        ? state.bukuList.sublist(6, state.bukuList.length.clamp(6, 12))
+        : <BukuEntity>[];
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: AppSpacing.sm),
+          const BannerCarousel(),
+          const SizedBox(height: AppSpacing.xxl),
+          PopularBooksScroll(
+            title: 'Populer',
+            books: popular,
+            onTap: (buku) => _showBookDetail(context, buku),
           ),
-        );
-      },
+          const SizedBox(height: AppSpacing.xxl),
+          if (recommended.isNotEmpty)
+            RecommendedBooksGrid(
+              title: 'Rekomendasi',
+              books: recommended,
+              onTap: (buku) => _showBookDetail(context, buku),
+            ),
+          const SizedBox(height: AppSpacing.xxl),
+        ],
+      ),
     );
   }
 
   void _showBookDetail(BuildContext context, BukuEntity buku) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildBookDetailSheet(context, buku),
-    );
-  }
-
-  Widget _buildBookDetailSheet(BuildContext context, BukuEntity buku) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(buku.judul, style: AppTypography.heading2),
-            const SizedBox(height: AppSpacing.md),
-            _buildDetailRow('Penulis', buku.penulis),
-            _buildDetailRow('Penerbit', buku.penerbit),
-            _buildDetailRow('Tahun Terbit', buku.tahunTerbit.toString()),
-            _buildDetailRow('Kategori', buku.namaKategori ?? '-'),
-            _buildDetailRow('Subjek', buku.namaSubjek ?? '-'),
-            _buildDetailRow('Lokasi', buku.namaLokasi ?? '-'),
-            _buildDetailRow('Jumlah', '${buku.jumlah} eksemplar'),
-            _buildDetailRow('Status', buku.status),
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: buku.status == 'tersedia'
-                    ? () {
-                        Navigator.pop(context);
-                        _showPinjamDialog(context, buku);
-                      }
-                    : null,
-                icon: const Icon(Icons.book_online),
-                label: const Text('Pinjam Buku'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(label,
-                style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.textSecondary)),
-          ),
-          Expanded(
-            child: Text(value, style: AppTypography.bodyMedium),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPinjamDialog(BuildContext context, BukuEntity buku) {
-    final user = ref.read(authNotifierProvider).user;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan login terlebih dahulu')),
-      );
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Konfirmasi Peminjaman'),
-        content: Text('Pinjam "${buku.judul}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _createPeminjaman(context, buku, user.id);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Ya, Pinjam'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _createPeminjaman(BuildContext context, BukuEntity buku, int userId) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Peminjaman "${buku.judul}" berhasil!'),
-        backgroundColor: AppColors.success,
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (_, __, ___) => BookDetailScreen(book: buku),
+        transitionsBuilder: (_, animation, __, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOut,
+            )),
+            child: child,
+          );
+        },
       ),
     );
   }

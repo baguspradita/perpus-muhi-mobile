@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import 'app_badge.dart';
@@ -28,7 +30,7 @@ class BookCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppRadius.rXl,
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withAlpha(38),
@@ -49,7 +51,7 @@ class BookCard extends StatelessWidget {
                   top: Radius.circular(24),
                 ),
               ),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -62,7 +64,7 @@ class BookCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withAlpha(38),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppRadius.rSm,
                       ),
                       child: Text(
                         kategori!,
@@ -87,7 +89,7 @@ class BookCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
