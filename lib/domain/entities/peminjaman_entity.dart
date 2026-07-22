@@ -25,18 +25,37 @@ class PeminjamanEntity extends Equatable {
     this.details = const [],
   });
 
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static int? _parseIntNullable(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      if (value.contains('.')) return double.tryParse(value)?.toInt();
+      return int.tryParse(value);
+    }
+    return null;
+  }
+
   factory PeminjamanEntity.fromJson(Map<String, dynamic> json) {
     final detailsList = json['details'] as List? ?? json['detail_peminjaman'] as List? ?? [];
+    final user = json['user'] as Map<String, dynamic>?;
+    final pengembalian = json['pengembalian'] as Map<String, dynamic>?;
     return PeminjamanEntity(
-      id: json['id'] as int? ?? 0,
-      userId: json['user_id'] as int? ?? 0,
-      userName: json['user_name'] as String? ?? json['nama'] as String? ?? '',
-      userRole: json['user_role'] as String? ?? json['role'] as String?,
+      id: _parseInt(json['id']),
+      userId: _parseInt(user?['id'] ?? json['user_id']),
+      userName: user?['nama'] as String? ?? json['user_name'] as String? ?? json['nama'] as String? ?? '',
+      userRole: user?['role'] as String? ?? json['user_role'] as String?,
       tglPinjam: json['tgl_pinjam'] as String? ?? '',
       tglJatuhTempo: json['tgl_jatuh_tempo'] as String? ?? '',
-      tglKembali: json['tgl_kembali'] as String?,
+      tglKembali: pengembalian?['tgl_kembali'] as String? ?? json['tgl_kembali'] as String?,
       status: json['status'] as String? ?? '',
-      denda: json['denda'] as int?,
+      denda: pengembalian?['denda'] != null ? _parseIntNullable(pengembalian!['denda']) : _parseIntNullable(json['denda']),
       details: detailsList.map((e) => DetailPeminjamanEntity.fromJson(e as Map<String, dynamic>)).toList(),
     );
   }
@@ -61,10 +80,11 @@ class DetailPeminjamanEntity extends Equatable {
   });
 
   factory DetailPeminjamanEntity.fromJson(Map<String, dynamic> json) {
+    final buku = json['buku'] as Map<String, dynamic>?;
     return DetailPeminjamanEntity(
       id: json['id'] as int? ?? 0,
       bukuId: json['buku_id'] as int? ?? 0,
-      judulBuku: json['judul_buku'] as String? ?? json['judul'] as String? ?? '',
+      judulBuku: buku?['judul'] as String? ?? json['judul_buku'] as String? ?? '',
       jumlah: json['jumlah'] as int? ?? 1,
       idEksamplar: json['id_eksamplar'] as String?,
     );

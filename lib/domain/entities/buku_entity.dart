@@ -29,14 +29,21 @@ class BukuEntity extends Equatable {
     this.namaLokasi,
   });
 
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
   factory BukuEntity.fromJson(Map<String, dynamic> json) {
     return BukuEntity(
-      id: json['id'] as int? ?? 0,
+      id: _parseInt(json['id']),
       judul: json['judul'] as String? ?? '',
       penulis: json['nama_penulis'] as String? ?? json['penulis'] as String? ?? '',
       penerbit: json['penerbit'] as String? ?? '',
-      tahunTerbit: json['tahun_terbit'] as int? ?? 0,
-      jumlah: json['jumlah'] as int? ?? 0,
+      tahunTerbit: _parseInt(json['tahun_terbit']),
+      jumlah: _parseInt(json['jumlah']),
       hurufJudulAwal: json['huruf_judul_awal'] as String?,
       nomorSalinan: json['nomor_salinan'] as String?,
       status: json['status'] as String? ?? 'tersedia',

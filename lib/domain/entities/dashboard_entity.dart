@@ -21,16 +21,23 @@ class DashboardEntity extends Equatable {
     this.anggotaGuru = 0,
   });
 
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
   factory DashboardEntity.fromJson(Map<String, dynamic> json) {
     return DashboardEntity(
-      totalBuku: json['total_buku'] as int? ?? 0,
-      totalAnggota: json['total_anggota'] as int? ?? 0,
-      bukuDipinjam: json['buku_dipinjam'] as int? ?? 0,
-      peminjamanAktif: json['peminjaman_aktif'] as int? ?? 0,
-      peminjamanTerlambat: json['peminjaman_terlambat'] as int? ?? 0,
-      totalPeminjaman: json['total_peminjaman'] as int? ?? 0,
-      anggotaSiswa: json['anggota_siswa'] as int? ?? 0,
-      anggotaGuru: json['anggota_guru'] as int? ?? 0,
+      totalBuku: _parseInt(json['total_buku']),
+      totalAnggota: _parseInt(json['total_anggota']),
+      bukuDipinjam: _parseInt(json['buku_dipinjam']),
+      peminjamanAktif: _parseInt(json['peminjaman_aktif']),
+      peminjamanTerlambat: _parseInt(json['peminjaman_terlambat']),
+      totalPeminjaman: _parseInt(json['total_peminjaman']),
+      anggotaSiswa: _parseInt(json['anggota_siswa']),
+      anggotaGuru: _parseInt(json['anggota_guru']),
     );
   }
 
