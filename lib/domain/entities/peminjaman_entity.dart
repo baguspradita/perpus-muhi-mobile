@@ -62,6 +62,38 @@ class PeminjamanEntity extends Equatable {
 
   @override
   List<Object?> get props => [id, userId, userName, tglPinjam, status];
+
+  static const int _dendaPerHari = 1000;
+
+  int hitungDenda() {
+    // 1. Sudah dikembalikan → denda sudah lunas
+    if (tglKembali != null) return 0;
+
+    // 2. Status kembali → denda sudah lunas
+    final s = status.toLowerCase();
+    if (s == 'kembali' || s == 'dikembalikan' || s == 'selesai') return 0;
+
+    // 3. Cek denda dari API (untuk buku terlambat yang belum kembali)
+    final apiDenda = denda ?? 0;
+    if (apiDenda > 0) return apiDenda;
+
+    // 4. Hitung manual dari keterlambatan
+    if (tglJatuhTempo.isEmpty) return 0;
+
+    final now = DateTime.now();
+    final jatuhTempo = DateTime.tryParse(tglJatuhTempo);
+    if (jatuhTempo == null) return 0;
+
+    final today = DateTime(now.year, now.month, now.day);
+    final jatuh = DateTime(jatuhTempo.year, jatuhTempo.month, jatuhTempo.day);
+
+    if (today.isAfter(jatuh)) {
+      final hariTerlambat = today.difference(jatuh).inDays;
+      return hariTerlambat * _dendaPerHari;
+    }
+
+    return 0;
+  }
 }
 
 class DetailPeminjamanEntity extends Equatable {

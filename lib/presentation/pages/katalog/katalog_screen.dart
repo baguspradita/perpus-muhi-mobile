@@ -6,15 +6,12 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../domain/entities/buku_entity.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/katalog_provider.dart';
 import '../../widgets/app_search_bar.dart';
-import '../../widgets/banner_carousel.dart';
-import '../../widgets/book_scroll_widgets.dart';
+import '../../widgets/book_card.dart';
 import '../../widgets/category_chips.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_shimmer.dart';
-import 'book_detail_screen.dart';
 
 class KatalogScreen extends ConsumerStatefulWidget {
   const KatalogScreen({super.key});
@@ -26,17 +23,12 @@ class KatalogScreen extends ConsumerStatefulWidget {
 class _KatalogScreenState extends ConsumerState<KatalogScreen> {
   final _searchController = TextEditingController();
   int _selectedCategoryIndex = 0;
-  bool _filtersLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    // Trigger load data when provider is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_filtersLoaded) {
-        ref.read(katalogProvider.notifier).loadData();
-        _filtersLoaded = true;
-      }
+      ref.read(katalogProvider.notifier).loadData();
     });
   }
 
@@ -50,96 +42,96 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
   Widget build(BuildContext context) {
     final katalogState = ref.watch(katalogProvider);
 
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: AppSpacing.lg,
-            right: AppSpacing.lg,
-            bottom: AppSpacing.md,
-          ),
-          color: AppColors.surface,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Katalog'),
+        automaticallyImplyLeading: false,
+        actions: [
+          Stack(
+            alignment: Alignment.center,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('iPustaka', style: AppTypography.display),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.chat_outlined),
-                    color: AppColors.textSecondary,
-                  ),
-                ],
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined),
+                tooltip: 'Notifikasi',
+                onPressed: () {},
               ),
-              const SizedBox(height: AppSpacing.sm),
-              AppSearchBar(
-                hintText: 'Cari judul buku atau penulis...',
-                onChanged: (value) {
-                  ref.read(katalogProvider.notifier).loadData(search: value);
-                },
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.error,
+                    shape: BoxShape.circle,
+                  ),
+                ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if (katalogState.isLoading || !_filtersLoaded) ...[
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              itemCount: 4,
-              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                return Container(
-                  width: 80,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: AppColors.categoryBg,
-                    borderRadius: AppRadius.rXl,
-                    border: Border.all(color: AppColors.borderLight, width: 1),
-                  ),
-                );
+        ],
+      ),
+      body: Column(
+        children: [
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              0,
+            ),
+            child: AppSearchBar(
+              hintText: 'Cari buku, penulis, atau ISBN...',
+              onChanged: (value) {
+                ref.read(katalogProvider.notifier).loadData(search: value);
               },
+              prefixIcon: const Icon(Icons.search, color: AppColors.outline, size: 20),
             ),
           ),
-        ] else ...[
+          const SizedBox(height: AppSpacing.md),
+          // Category Chips
           CategoryChipsScroll(
-            categories: CategoryItem.fromApiData(
-                (katalogState.filters['kategori'] as List? ?? []),
-            ),
+            categories: CategoryItem.staticCategories(),
             selectedIndex: _selectedCategoryIndex,
             onCategorySelected: (index) {
               setState(() => _selectedCategoryIndex = index);
             },
           ),
+          const SizedBox(height: AppSpacing.md),
+          // Book Grid
+          Expanded(
+            child: katalogState.isLoading
+                ? _buildLoadingState()
+                : katalogState.errorMessage.isNotEmpty
+                    ? _buildErrorState(katalogState.errorMessage)
+                    : _buildBookGrid(katalogState),
+          ),
         ],
-        const SizedBox(height: AppSpacing.md),
-        Expanded(
-          child: katalogState.isLoading
-              ? _buildLoadingState()
-              : katalogState.errorMessage.isNotEmpty
-                  ? _buildErrorState(katalogState.errorMessage)
-                  : _buildKatalogList(katalogState),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildLoadingState() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: 6,
-      itemBuilder: (_, __) => const Padding(
-        padding: EdgeInsets.only(bottom: AppSpacing.md),
-        child: LoadingShimmer(
-          height: 140,
-          width: double.infinity,
-          borderRadius: 16,
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: AppSpacing.xxl),
+          const CircularProgressIndicator(
+            color: AppColors.outline,
+            strokeWidth: 3,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Memuat buku lainnya...',
+            style: AppTypography.bodySm.copyWith(
+              color: AppColors.outline,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -150,7 +142,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: EmptyState(
           icon: Icons.error_outline,
-          title: 'Gagal Memuat Data',
+          title: 'Gagal Memuat Buku',
           subtitle: error,
           actionLabel: 'Coba Lagi',
           onAction: () {
@@ -161,21 +153,21 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
     );
   }
 
-  Widget _buildKatalogList(KatalogState state) {
+  Widget _buildBookGrid(KatalogState state) {
     if (state.bukuList.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: EmptyState(
             icon: Icons.menu_book_outlined,
-            title: 'Belum Ada Data Buku',
+            title: 'Belum Ada Buku',
             subtitle: state.searchQuery.isNotEmpty
                 ? 'Tidak ada buku yang cocok dengan "${state.searchQuery}"'
-                : 'Data buku akan muncul di sini setelah diambil dari server.',
+                : 'Data buku akan muncul di sini.',
             actionLabel: state.searchQuery.isNotEmpty ? 'Hapus Filter' : 'Muat Ulang',
             onAction: () {
               ref.read(katalogProvider.notifier).loadData(
-                    search: state.searchQuery.isEmpty ? null : '',
+                    search: null,
                   );
             },
           ),
@@ -183,55 +175,30 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
       );
     }
 
-    final popular = state.bukuList.take(6).toList();
-    final recommended = state.bukuList.length > 6
-        ? state.bukuList.sublist(6, state.bukuList.length.clamp(6, 12))
-        : <BukuEntity>[];
+    final bukuBuku = _searchController.text.isNotEmpty
+        ? state.bukuList
+        : state.bukuList;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: AppSpacing.sm),
-          const BannerCarousel(),
-          const SizedBox(height: AppSpacing.xxl),
-          PopularBooksScroll(
-            title: 'Populer',
-            books: popular,
-            onTap: (buku) => _showBookDetail(context, buku),
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          if (recommended.isNotEmpty)
-            RecommendedBooksGrid(
-              title: 'Rekomendasi',
-              books: recommended,
-              onTap: (buku) => _showBookDetail(context, buku),
-            ),
-          const SizedBox(height: AppSpacing.xxl),
-        ],
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.68,
+        crossAxisSpacing: AppSpacing.md,
+        mainAxisSpacing: AppSpacing.md,
       ),
-    );
-  }
-
-  void _showBookDetail(BuildContext context, BukuEntity buku) {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 300),
-        pageBuilder: (_, __, ___) => BookDetailScreen(book: buku),
-        transitionsBuilder: (_, animation, __, child) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.1),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            )),
-            child: child,
-          );
-        },
-      ),
+      itemCount: bukuBuku.length,
+      itemBuilder: (context, index) {
+        final buku = bukuBuku[index];
+        return BookCard(
+          title: buku.judul,
+          author: buku.penulis,
+          coverColor: _getCoverColor(buku.id),
+          isAvailable: (buku.stokTersedia ?? 0) > 0,
+          onTap: () {},
+          isGridMode: true,
+        );
+      },
     );
   }
 
@@ -241,7 +208,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
       AppColors.secondary,
       AppColors.success,
       AppColors.warning,
-      AppColors.error,
+      AppColors.primaryContainer,
       AppColors.info,
     ];
     return colors[id % colors.length];

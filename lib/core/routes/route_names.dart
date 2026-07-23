@@ -5,6 +5,8 @@ abstract class RouteNames {
   static const String home = '/home';
   static const String katalog = '/katalog';
   static const String peminjaman = '/peminjaman';
-  static const String riwayat = '/riwayat';
   static const String profile = '/profile';
+  static const String editProfile = '/profile/edit';
+  static const String changePassword = '/profile/change-password';
+  static const String notifications = '/notifications';
 }

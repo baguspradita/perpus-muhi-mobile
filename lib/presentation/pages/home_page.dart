@@ -6,10 +6,11 @@ import '../../core/routes/route_names.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_radius.dart';
 import '../../domain/entities/user_entity.dart';
 import '../providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
-import '../widgets/app_card.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/stat_card.dart';
 
 class HomePage extends ConsumerWidget {
@@ -22,6 +23,7 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      endDrawer: const AppDrawer(),
       appBar: AppBar(
         title: const Text('Perpustakaan Muhi'),
         automaticallyImplyLeading: false,
@@ -51,15 +53,16 @@ class HomePage extends ConsumerWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildGreeting(context, user),
             const SizedBox(height: AppSpacing.xl),
             _buildStatsSection(context, ref),
-            const SizedBox(height: AppSpacing.xxl),
-            _buildMenuSection(context, authState),
+            const SizedBox(height: AppSpacing.xl),
+            _buildActiveLoansSection(context, ref),
           ],
         ),
       ),
@@ -75,20 +78,38 @@ class HomePage extends ConsumerWidget {
       _ => 'Selamat malam',
     };
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '$greeting, ${user?.nama ?? 'User'}',
-          style: AppTypography.heading1.copyWith(
-            color: AppColors.textPrimary,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$greeting, ${user?.nama ?? 'User'}',
+                style: AppTypography.headlineLgMobile,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Perpustakaan Muhi',
+                style: AppTypography.bodySm.copyWith(
+                  color: AppColors.outline,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          'Perpustakaan Muhi',
-          style: AppTypography.bodyLarge.copyWith(
-            color: AppColors.textSecondary,
+        const SizedBox(width: AppSpacing.md),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerLow,
+            borderRadius: AppRadius.rMd,
+          ),
+          child: IconButton(
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer();
+            },
+            icon: const Icon(Icons.menu, color: AppColors.primary),
           ),
         ),
       ],
@@ -99,111 +120,167 @@ class HomePage extends ConsumerWidget {
     final dashboardState = ref.watch(dashboardProvider);
     final d = dashboardState.dashboard;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          StatCard(
-            title: 'TOTAL BUKU',
-            value: d?.totalBuku.toString() ?? '-',
-            icon: Icons.library_books,
-            iconColor: AppColors.primary,
-            bgColor: AppColors.primaryLight,
-            shadowColor: AppColors.shadowPrimary,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          StatCard(
-            title: 'TOTAL ANGGOTA',
-            value: d?.totalAnggota.toString() ?? '-',
-            icon: Icons.people,
-            iconColor: AppColors.success,
-            bgColor: AppColors.successLight,
-            shadowColor: AppColors.shadowLight,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          StatCard(
-            title: 'DIPINJAM',
-            value: d?.peminjamanAktif.toString() ?? '-',
-            icon: Icons.book,
-            iconColor: AppColors.warning,
-            bgColor: AppColors.warningLight,
-            shadowColor: AppColors.shadowLight,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuSection(BuildContext context, AuthState authState) {
-    final isPetugas = authState.user?.role == 'petugas';
-
-    final items = [
-      {'title': 'Katalog', 'icon': Icons.menu_book, 'color': AppColors.primary, 'onTap': () => context.go(RouteNames.katalog)},
-      {'title': 'Peminjaman', 'icon': Icons.history, 'color': AppColors.secondary, 'onTap': () => context.go(RouteNames.peminjaman)},
-      {'title': 'Riwayat', 'icon': Icons.list_alt, 'color': AppColors.warning, 'onTap': () => context.go('/riwayat')},
-      {'title': 'Profil', 'icon': Icons.person, 'color': AppColors.success, 'onTap': () => context.go(RouteNames.profile)},
-      if (isPetugas) {'title': 'Master', 'icon': Icons.settings, 'color': AppColors.textSecondary, 'onTap': () {}},
-      if (isPetugas) {'title': 'Anggota', 'icon': Icons.group, 'color': AppColors.textSecondary, 'onTap': () {}},
-    ];
-
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Akses Cepat',
-          style: AppTypography.heading2.copyWith(color: AppColors.textPrimary),
+        // Main stat card (full width)
+        StatCard(
+          title: 'Buku Tersedia',
+          value: d?.totalBuku.toString() ?? '1,240',
+          icon: Icons.menu_book,
+          iconColor: AppColors.primaryContainer,
+          bgColor: AppColors.surfaceContainerLowest,
+          shadowColor: AppColors.shadowPrimary,
+          isExpanded: true,
         ),
-        const SizedBox(height: AppSpacing.lg),
-        GridView.count(
-          crossAxisCount: 4,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.md,
-          crossAxisSpacing: AppSpacing.md,
-          childAspectRatio: 0.9,
-          children: items.map((item) => _MenuCard(
-            title: item['title'] as String,
-            icon: item['icon'] as IconData,
-            color: item['color'] as Color,
-            onTap: item['onTap'] as VoidCallback,
-          )).toList(),
+        const SizedBox(height: AppSpacing.md),
+        // Row with 2 smaller cards
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                title: 'Pinjaman Aktif',
+                value: d?.peminjamanAktif.toString() ?? '2',
+                icon: Icons.book_outlined,
+                iconColor: AppColors.primary,
+                bgColor: AppColors.surfaceContainerLowest,
+                shadowColor: AppColors.shadowPrimary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: StatCard(
+                title: 'Terlambat',
+                value: d?.peminjamanTerlambat.toString() ?? '0',
+                icon: Icons.warning_outlined,
+                iconColor: AppColors.error,
+                bgColor: AppColors.surfaceContainerLowest,
+                shadowColor: AppColors.shadowPrimary,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-}
-
-
-class _MenuCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _MenuCard({
-    required this.title,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 32, color: color),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            title,
-            style: AppTypography.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+  Widget _buildActiveLoansSection(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Pinjaman Aktif',
+              style: AppTypography.headlineMd,
             ),
-            textAlign: TextAlign.center,
+            TextButton(
+              onPressed: () {
+                context.go(RouteNames.peminjaman);
+              },
+              child: Text(
+                'Lihat Semua',
+                style: AppTypography.bodySm.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 200,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: 3,
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+            itemBuilder: (context, index) => _buildBookLoanCard(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBookLoanCard() {
+    return Container(
+      width: 160,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.rXl,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowPrimary,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Book cover
+          Container(
+            height: 120,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.book,
+                size: 48,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          // Info
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.warningLight,
+                      borderRadius: AppRadius.rPill,
+                    ),
+                    child: Text(
+                      'Dipinjam',
+                      style: AppTypography.labelMd.copyWith(
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Fisika Quantum Modern',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodySm.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Tempo: 24 Okt 2023',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

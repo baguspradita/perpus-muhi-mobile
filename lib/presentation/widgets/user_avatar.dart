@@ -46,15 +46,41 @@ class UserAvatar extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          initial,
-          style: AppTypography.heading3.copyWith(
-            color: txtColor,
-            fontSize: size * 0.4,
-            fontWeight: FontWeight.w700,
+      child: Stack(
+        children: [
+          Center(
+            child: Text(
+              initial,
+              style: AppTypography.heading3.copyWith(
+                color: txtColor,
+                fontSize: size * 0.4,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
-        ),
+          if (showBorder)
+            Positioned(
+              right: size * 0.05,
+              bottom: size * 0.05,
+              child: Container(
+                width: size * 0.25,
+                height: size * 0.25,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLowest,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.surface,
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.camera_alt,
+                  color: AppColors.primary,
+                  size: size * 0.15,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

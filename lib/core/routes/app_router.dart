@@ -7,8 +7,11 @@ import '../../presentation/pages/register_page.dart';
 import '../../presentation/pages/splash_page.dart';
 import '../../presentation/pages/katalog/katalog_screen.dart';
 import '../../presentation/pages/peminjaman/peminjaman_list_screen.dart';
-import '../../presentation/pages/profile/profile_screen.dart';
 import '../../presentation/pages/peminjaman/riwayat_screen.dart';
+import '../../presentation/pages/profile/profile_screen.dart';
+import '../../presentation/pages/profile/edit_profile_screen.dart';
+import '../../presentation/pages/profile/change_password_screen.dart';
+import '../../presentation/pages/profile/notification_screen.dart';
 import '../../presentation/widgets/scaffold_with_nav_bar.dart';
 import '../routes/route_names.dart';
 
@@ -26,6 +29,18 @@ final router = GoRouter(
     GoRoute(
       path: RouteNames.register,
       builder: (context, state) => const RegisterPage(),
+    ),
+    GoRoute(
+      path: RouteNames.notifications,
+      builder: (context, state) => const NotificationScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.editProfile,
+      builder: (context, state) => const EditProfileScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.changePassword,
+      builder: (context, state) => const ChangePasswordScreen(),
     ),
     ShellRoute(
       builder: (context, state, child) => ScaffoldWithNavBar(child: child),
@@ -45,10 +60,6 @@ final router = GoRouter(
         GoRoute(
           path: RouteNames.profile,
           builder: (context, state) => const ProfileScreen(),
-        ),
-        GoRoute(
-          path: RouteNames.riwayat,
-          builder: (context, state) => const RiwayatScreen(),
         ),
       ],
     ),

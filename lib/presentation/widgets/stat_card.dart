@@ -12,6 +12,7 @@ class StatCard extends StatelessWidget {
   final Color? iconColor;
   final Color? shadowColor;
   final Color? bgColor;
+  final bool isExpanded;
 
   const StatCard({
     super.key,
@@ -22,70 +23,102 @@ class StatCard extends StatelessWidget {
     this.iconColor,
     this.shadowColor,
     this.bgColor,
+    this.isExpanded = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final width = isExpanded ? double.infinity : 150.0;
+
     return Container(
-      width: 160,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      width: width,
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: bgColor ?? AppColors.surface,
-        borderRadius: AppRadius.rMd,
-        border: Border.all(color: AppColors.borderLight),
+        color: bgColor ?? AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.rXl,
+        border: Border.all(color: AppColors.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: shadowColor ?? AppColors.primary.withAlpha(38),
-            blurRadius: 4,
+            color: shadowColor ?? AppColors.shadowPrimary,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      child: isExpanded ? _buildExpandedLayout() : _buildCompactLayout(),
+    );
+  }
+
+  Widget _buildExpandedLayout() {
+    return Row(
+      children: [
+        // Icon container
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: (bgColor ?? AppColors.surfaceContainerLow).withAlpha(100),
+            borderRadius: AppRadius.rMd,
+          ),
+          child: Icon(
+            icon ?? Icons.analytics,
+            color: iconColor ?? AppColors.primary,
+            size: 28,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        // Text content
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: AppTypography.labelMd.copyWith(
+                  color: AppColors.outline,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                value,
+                style: AppTypography.statNumber,
+              ),
+              if (subtitle != null)
                 Text(
-                  title,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textMuted,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.05,
+                  subtitle!,
+                  style: AppTypography.bodySm.copyWith(
+                    color: AppColors.outline,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  value,
-                  style: AppTypography.statNumber.copyWith(fontSize: 24),
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle!,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: AppTypography.labelMd.copyWith(
+            color: AppColors.outline,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          value,
+          style: AppTypography.statNumber.copyWith(fontSize: 24),
+        ),
+        if (subtitle != null)
+          Text(
+            subtitle!,
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.textSecondary,
             ),
           ),
-          if (icon != null)
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: bgColor?.withAlpha(100) ?? AppColors.primaryLight,
-                borderRadius: AppRadius.rMd,
-              ),
-              child: Icon(
-                icon,
-                color: iconColor ?? AppColors.primary,
-                size: 24,
-              ),
-            ),
-        ],
-      ),
+      ],
     );
   }
 }

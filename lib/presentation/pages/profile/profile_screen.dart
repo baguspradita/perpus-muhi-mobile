@@ -8,18 +8,57 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/peminjaman_provider.dart';
 import '../../widgets/app_badge.dart';
-import '../../widgets/app_button.dart';
-import '../../widgets/app_card.dart';
-import '../../widgets/page_header.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/profile_stats_section.dart';
+import '../../widgets/profile_menu_list.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  int _totalDenda = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadDenda());
+  }
+
+  Future<void> _loadDenda() async {
+    final notifier = ref.read(peminjamanProvider.notifier);
+    final activeCount = ref.read(peminjamanProvider).peminjaman.length;
+
+    // Hanya hitung denda dari pinjaman AKTIF (belum dikembalikan)
+    await notifier.loadPeminjaman(isRiwayat: false);
+    final active = ref.read(peminjamanProvider).peminjaman;
+    int dendaAktif = 0;
+    print('=== PINJAMAN AKTIF COUNT: ${active.length} ===');
+    for (final p in active) {
+      final d = p.hitungDenda();
+      if (d > 0) {
+        dendaAktif += d;
+        print('ID:${p.id} | Status:${p.status} | TglKembali:${p.tglKembali} | Denda:$d');
+      }
+    }
+    print('=== TOTAL DENDA AKTIF: $dendaAktif ===');
+
+    if (mounted) {
+      setState(() {
+        _totalDenda = dendaAktif;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authNotifierProvider).user;
+    final peminjamanState = ref.watch(peminjamanProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -29,112 +68,200 @@ class ProfileScreen extends ConsumerWidget {
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PageHeader(
-              title: 'Akun Saya',
-              subtitle: 'Kelola informasi profil Anda',
+            _buildProfileHeader(context, user),
+            const SizedBox(height: AppSpacing.lg),
+            ProfileStatsSection(
+              totalPinjam: peminjamanState.peminjaman.length,
+              dendaAktif: _totalDenda,
             ),
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Row(
-                children: [
-                  UserAvatar(
-                    name: user?.nama ?? 'U',
-                    size: 64,
-                    showBorder: true,
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user?.nama ?? '-',
-                          style: AppTypography.heading3,
-                        ),
-                        Text(
-                          user?.email ?? '-',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppBadge(
-                          text: _roleLabel(user?.role),
-                          variant: AppBadgeVariant.info,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Informasi Akun',
-                    style: AppTypography.heading3,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  _infoRow('Nama', user?.nama ?? '-'),
-                  _infoRow('Email', user?.email ?? '-'),
-                  _infoRow('Role', _roleLabel(user?.role)),
-                  if (user?.role == 'siswa') ...[
-                    _infoRow('NISN', user?.nisn ?? '-'),
-                    _infoRow('Kelas', user?.kelas?.toString() ?? '-'),
-                    _infoRow('Jurusan', user?.jurusan ?? '-'),
-                  ],
-                  if (user?.role == 'guru') ...[
-                    _infoRow('NIP', user?.nip ?? '-'),
-                    _infoRow('Mapel', user?.mapel ?? '-'),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                label: 'Keluar',
-                type: AppButtonType.danger,
-                icon: Icons.logout,
-                isExpanded: true,
-                onPressed: () => _confirmLogout(context, ref),
-              ),
-            ),
+            const SizedBox(height: AppSpacing.lg),
+            _buildMenuList(context, ref),
           ],
         ),
       ),
     );
   }
 
-  Widget _infoRow(String label, String value) {
+  Widget _buildProfileHeader(BuildContext context, dynamic user) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.rXl,
+        border: Border.all(color: AppColors.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowPrimary,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          UserAvatar(
+            name: user?.nama ?? 'U',
+            size: 100,
+            showBorder: true,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            user?.nama ?? '-',
+            style: AppTypography.headlineMd,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppBadge(
+                text: _roleLabel(user?.role),
+                variant: AppBadgeVariant.info,
+              ),
+              if (user?.nisn != null) ...[
+                const SizedBox(width: AppSpacing.sm),
+                AppBadge(
+                  text: 'NISN: ${user?.nisn}',
+                ),
+              ],
+              if (user?.nip != null) ...[
+                const SizedBox(width: AppSpacing.sm),
+                AppBadge(
+                  text: 'NIP: ${user?.nip}',
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Membaca adalah jendela dunia. Mari jelajahi koleksi Perpustakaan Muhi.',
+            style: AppTypography.bodySm.copyWith(
+              color: AppColors.outline,
+              fontStyle: FontStyle.italic,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuList(BuildContext context, WidgetRef ref) {
+    return ProfileMenuList(
+      items: [
+        ProfileMenuItem(
+          icon: Icons.person_outlined,
+          title: 'Edit Profil',
+          onTap: () => context.go(RouteNames.editProfile),
+        ),
+        ProfileMenuItem(
+          icon: Icons.lock_outlined,
+          title: 'Ubah Password',
+          onTap: () => context.go(RouteNames.changePassword),
+        ),
+        ProfileMenuItem(
+          icon: Icons.notifications_outlined,
+          title: 'Notifikasi',
+          onTap: () => context.go(RouteNames.notifications),
+        ),
+        ProfileMenuItem(
+          icon: Icons.help_outline,
+          title: 'Bantuan',
+          onTap: () => _showHelpBottomSheet(context),
+        ),
+        ProfileMenuItem(
+          icon: Icons.logout,
+          title: 'Keluar',
+          onTap: () => _confirmLogout(context, ref),
+          isDestructive: true,
+          showDivider: false,
+        ),
+      ],
+    );
+  }
+
+  void _showHelpBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: const BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outlineVariant,
+                  borderRadius: AppRadius.rPill,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Bantuan & FAQ',
+              style: AppTypography.headlineMd,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _buildFAQItem(
+              'Bagaimana cara meminjam buku?',
+              'Buka menu Katalog, pilih buku yang diinginkan, lalu tekan tombol Pinjam.',
+            ),
+            _buildFAQItem(
+              'Bagaimana cara mengembalikan buku?',
+              'Buka menu Pinjaman, pilih buku yang ingin dikembalikan, lalu tekan tombol Kembalikan.',
+            ),
+            _buildFAQItem(
+              'Apakah ada denda keterlambatan?',
+            'Ya, denda akan dikenakan jika melewati batas waktu pengembalian. Hubungi petugas untuk informasi lebih lanjut.',
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Tutup'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFAQItem(String question, String answer) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Row(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+          Text(
+            question,
+            style: AppTypography.bodyMd.copyWith(
+              fontWeight: FontWeight.w600,
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            answer,
+            style: AppTypography.bodySm.copyWith(
+              color: AppColors.outline,
             ),
           ),
         ],
@@ -144,10 +271,14 @@ class ProfileScreen extends ConsumerWidget {
 
   String _roleLabel(String? role) {
     switch (role) {
-      case 'siswa': return 'Siswa';
-      case 'guru': return 'Guru';
-      case 'petugas': return 'Petugas';
-      default: return role ?? '-';
+      case 'siswa':
+        return 'Siswa';
+      case 'guru':
+        return 'Guru';
+      case 'petugas':
+        return 'Petugas';
+      default:
+        return role ?? '-';
     }
   }
 

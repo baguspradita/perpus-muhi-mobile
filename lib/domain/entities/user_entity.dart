@@ -32,7 +32,7 @@ class UserEntity extends Equatable {
   factory UserEntity.fromJson(Map<String, dynamic> json) {
     final userData = json['user'] as Map<String, dynamic>? ?? json;
     return UserEntity(
-      id: userData['id'] as int? ?? 0,
+      id: _parseInt(userData['id']),
       nama: userData['nama'] as String? ?? '',
       email: userData['email'] as String? ?? '',
       role: userData['role'] as String? ?? '',
@@ -42,9 +42,23 @@ class UserEntity extends Equatable {
       nip: userData['nip'] as String?,
       mapel: userData['mapel'] as String?,
       jurusan: userData['jurusan'] as String?,
-      jurusanId: userData['jurusan_id'] as int?,
-      kelas: userData['kelas'] as int?,
+      jurusanId: _parseIntNullable(userData['jurusan_id']),
+      kelas: _parseIntNullable(userData['kelas']),
     );
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static int? _parseIntNullable(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 
   Map<String, dynamic> toJson() {

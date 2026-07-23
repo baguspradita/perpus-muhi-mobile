@@ -19,46 +19,128 @@ class PeminjamanScreen extends ConsumerStatefulWidget {
   ConsumerState<PeminjamanScreen> createState() => _PeminjamanScreenState();
 }
 
-class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen> {
+class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChange);
+  }
+
+  void _handleTabChange() {
+    if (_tabController.indexIsChanging) return;
+    if (_tabController.index == 1) {
+      ref.read(peminjamanProvider.notifier).loadPeminjaman(isRiwayat: true);
+    } else {
+      ref.read(peminjamanProvider.notifier).loadPeminjaman();
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final peminjamanState = ref.watch(peminjamanProvider);
-
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PageHeader(
-                  title: 'Peminjaman',
-                  subtitle: 'Kelola transaksi peminjaman buku',
-                  actions: IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.filter_list),
-                  ),
+      appBar: AppBar(
+        title: const Text('Pinjaman'),
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.filter_list),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: AppRadius.rPill,
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: AppRadius.rPill,
                 ),
-                const SizedBox(height: AppSpacing.md),
-                AppSearchBar(
-                  hintText: 'Cari nama siswa atau buku...',
-                ),
-              ],
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: AppColors.outline,
+                labelStyle: AppTypography.labelMd,
+                unselectedLabelStyle: AppTypography.labelMd,
+                dividerHeight: 0,
+                tabs: const [
+                  Tab(text: 'Aktif'),
+                  Tab(text: 'Riwayat'),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+        ),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: AppSpacing.md),
           Expanded(
-            child: peminjamanState.isLoading
-                ? _buildLoadingState()
-                : peminjamanState.errorMessage.isNotEmpty
-                    ? _buildErrorState(peminjamanState.errorMessage)
-                    : _buildPeminjamanList(peminjamanState.peminjaman),
+            child: _tabController.index == 0
+                ? _buildActiveTab(context)
+                : _buildHistoryTab(context),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildActiveTab(BuildContext context) {
+    final peminjamanState = ref.watch(peminjamanProvider);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: AppSearchBar(
+            hintText: 'Cari nama siswa atau buku...',
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Expanded(
+          child: peminjamanState.isLoading
+              ? _buildLoadingState()
+              : peminjamanState.errorMessage.isNotEmpty
+                  ? _buildErrorState(peminjamanState.errorMessage)
+                  : _buildPeminjamanList(peminjamanState.peminjaman),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHistoryTab(BuildContext context) {
+    final peminjamanState = ref.watch(peminjamanProvider);
+
+    return Column(
+      children: [
+        Expanded(
+          child: peminjamanState.isLoading
+              ? _buildLoadingState()
+              : peminjamanState.errorMessage.isNotEmpty
+                  ? _buildErrorState(peminjamanState.errorMessage)
+                  : _buildPeminjamanList(peminjamanState.peminjaman),
+        ),
+      ],
     );
   }
 
@@ -101,11 +183,17 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: EmptyState(
             icon: Icons.history_outlined,
-            title: 'Belum Ada Data Peminjaman',
-            subtitle: 'Daftar peminjaman akan muncul di sini.',
+            title: _tabController.index == 0
+                ? 'Belum Ada Pinjaman Aktif'
+                : 'Belum Ada Riwayat',
+            subtitle: _tabController.index == 0
+                ? 'Pinjaman aktif Anda akan muncul di sini.'
+                : 'Riwayat peminjaman Anda akan muncul di sini.',
             actionLabel: 'Muat Ulang',
             onAction: () {
-              ref.read(peminjamanProvider.notifier).loadPeminjaman();
+              ref.read(peminjamanProvider.notifier).loadPeminjaman(
+                    isRiwayat: _tabController.index == 1,
+                  );
             },
           ),
         ),
@@ -118,11 +206,13 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen> {
         vertical: AppSpacing.md,
       ),
       itemCount: peminjaman.length,
-      itemBuilder: (context, index) => _buildPeminjamanCard(context, peminjaman[index]),
+      itemBuilder: (context, index) =>
+          _buildPeminjamanCard(context, peminjaman[index]),
     );
   }
 
-  Widget _buildPeminjamanCard(BuildContext context, PeminjamanEntity peminjaman) {
+  Widget _buildPeminjamanCard(
+      BuildContext context, PeminjamanEntity peminjaman) {
     final isReturned = peminjaman.status.toLowerCase() == 'dikembalikan' ||
         peminjaman.tglKembali != null;
 
@@ -168,24 +258,30 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen> {
                 children: [
                   Text(
                     peminjaman.userName,
-                    style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+                    style: AppTypography.bodyLg
+                        .copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     peminjaman.tglPinjam,
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                    style: AppTypography.bodySmall
+                        .copyWith(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
-                      color: isReturned ? AppColors.successLight : AppColors.warningLight,
+                      color: isReturned
+                          ? AppColors.successLight
+                          : AppColors.warningLight,
                       borderRadius: AppRadius.rSm,
                     ),
                     child: Text(
                       isReturned ? 'Dikembalikan' : peminjaman.status,
                       style: AppTypography.bodySmall.copyWith(
-                        color: isReturned ? AppColors.success : AppColors.warning,
+                        color:
+                            isReturned ? AppColors.success : AppColors.warning,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -197,17 +293,11 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 IconButton(
-                  onPressed: () => _showPeminjamanDetail(context, peminjaman),
+                  onPressed: () =>
+                      _showPeminjamanDetail(context, peminjaman),
                   icon: const Icon(Icons.visibility_outlined),
                   tooltip: 'Lihat Detail',
                 ),
-                if (!isReturned)
-                  IconButton(
-                    onPressed: () => _confirmKembaliPeminjaman(context, peminjaman.id),
-                    icon: const Icon(Icons.check_circle_outline),
-                    color: AppColors.success,
-                    tooltip: 'Kembalikan Buku',
-                  ),
               ],
             ),
           ],
@@ -216,7 +306,8 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen> {
     );
   }
 
-  void _showPeminjamanDetail(BuildContext context, PeminjamanEntity peminjaman) {
+  void _showPeminjamanDetail(
+      BuildContext context, PeminjamanEntity peminjaman) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -235,7 +326,8 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen> {
               if (peminjaman.denda != null && peminjaman.denda! > 0)
                 _buildDetailRow('Denda', 'Rp ${peminjaman.denda}'),
               const SizedBox(height: AppSpacing.md),
-              Text('Detail Buku:', style: AppTypography.heading3.copyWith(fontSize: 14)),
+              Text('Detail Buku:',
+                  style: AppTypography.heading3.copyWith(fontSize: 14)),
               ...peminjaman.details.map(
                 (detail) => Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.xs),
@@ -274,56 +366,13 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen> {
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
+            child: Text(label,
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.textSecondary)),
           ),
           Expanded(child: Text(value, style: AppTypography.bodyMedium)),
         ],
       ),
     );
-  }
-
-  void _confirmKembaliPeminjaman(BuildContext context, int id) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
-        title: const Text('Konfirmasi Pengembalian'),
-        content: const Text('Apakah Anda yakin buku ini sudah dikembalikan?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _kembaliPeminjaman(id);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Konfirmasi'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _kembaliPeminjaman(int id) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    ref.read(peminjamanProvider.notifier).kembaliPeminjaman(id).then((_) {
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Buku berhasil dikembalikan'), backgroundColor: AppColors.success),
-        );
-      }
-    });
   }
 }

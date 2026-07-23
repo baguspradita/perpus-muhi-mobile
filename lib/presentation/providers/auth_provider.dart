@@ -61,24 +61,42 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return;
     }
 
-    final result = await _getProfileUseCase();
-    result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, isAuthenticated: false);
-      },
-      (user) {
-        if (user.role == 'petugas') {
-          state = state.copyWith(
-            isLoading: false,
-            isAuthenticated: false,
-            errorMessage: 'Akun petugas tidak dapat mengakses aplikasi mobile. Silakan gunakan website admin.',
-          );
-          sl<LocalStorageService>().delete('access_token');
-        } else {
-          state = state.copyWith(isLoading: false, isAuthenticated: true, user: user);
-        }
-      },
-    );
+    // Retry up to 3 times if API fails (network may be slow after hot restart)
+    for (int attempt = 0; attempt < 3; attempt++) {
+      final result = await _getProfileUseCase();
+      bool success = false;
+
+      result.fold(
+        (failure) {
+          print('initialize attempt ${attempt + 1} failed: ${failure.message}');
+        },
+        (user) {
+          if (user.role == 'petugas') {
+            state = state.copyWith(
+              isLoading: false,
+              isAuthenticated: false,
+              errorMessage: 'Akun petugas tidak dapat mengakses aplikasi mobile. Silakan gunakan website admin.',
+            );
+            sl<LocalStorageService>().delete('access_token');
+            success = true; // stop retrying
+          } else {
+            state = state.copyWith(isLoading: false, isAuthenticated: true, user: user);
+            success = true;
+          }
+        },
+      );
+
+      if (success) return;
+
+      // Wait before retry (increasing delay)
+      if (attempt < 2) {
+        await Future.delayed(Duration(milliseconds: 1000 * (attempt + 1)));
+      }
+    }
+
+    // All retries failed - keep token but mark as unauthenticated
+    print('All initialize attempts failed. Keeping token for next retry.');
+    state = state.copyWith(isLoading: false, isAuthenticated: false);
   }
 
   void clearError() {
@@ -162,17 +180,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> loadUserProfile() async {
+    print('=== loadUserProfile START ===');
     final result = await _getProfileUseCase();
     result.fold(
       (failure) {
+        print('loadUserProfile FAILED: ${failure.message} (${failure.runtimeType})');
         if (!state.isAuthenticated) {
           state = state.copyWith(isAuthenticated: false, errorMessage: failure.message);
         }
       },
       (user) {
+        print('loadUserProfile SUCCESS: ${user.nama} (${user.role})');
         state = state.copyWith(user: user);
       },
     );
+    print('=== loadUserProfile END ===');
   }
 
   Future<void> logout() async {
