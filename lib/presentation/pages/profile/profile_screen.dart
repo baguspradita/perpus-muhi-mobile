@@ -32,11 +32,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadDenda() async {
     final notifier = ref.read(peminjamanProvider.notifier);
-    final activeCount = ref.read(peminjamanProvider).peminjaman.length;
+    final activeCount = ref.read(peminjamanProvider).peminjamanAktif.length;
 
-    // Hanya hitung denda dari pinjaman AKTIF (belum dikembalikan)
-    await notifier.loadPeminjaman(isRiwayat: false);
-    final active = ref.read(peminjamanProvider).peminjaman;
+    await notifier.loadAllData();
+    final active = ref.read(peminjamanProvider).peminjamanAktif;
     int dendaAktif = 0;
     print('=== PINJAMAN AKTIF COUNT: ${active.length} ===');
     for (final p in active) {
@@ -75,7 +74,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _buildProfileHeader(context, user),
             const SizedBox(height: AppSpacing.lg),
             ProfileStatsSection(
-              totalPinjam: peminjamanState.peminjaman.length,
+              totalPinjam: peminjamanState.peminjamanAktif.length,
               dendaAktif: _totalDenda,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -157,17 +156,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ProfileMenuItem(
           icon: Icons.person_outlined,
           title: 'Edit Profil',
-          onTap: () => context.go(RouteNames.editProfile),
+          onTap: () => context.push(RouteNames.editProfile),
         ),
         ProfileMenuItem(
           icon: Icons.lock_outlined,
           title: 'Ubah Password',
-          onTap: () => context.go(RouteNames.changePassword),
+          onTap: () => context.push(RouteNames.changePassword),
         ),
         ProfileMenuItem(
           icon: Icons.notifications_outlined,
           title: 'Notifikasi',
-          onTap: () => context.go(RouteNames.notifications),
+          onTap: () => context.push(RouteNames.notifications),
         ),
         ProfileMenuItem(
           icon: Icons.help_outline,

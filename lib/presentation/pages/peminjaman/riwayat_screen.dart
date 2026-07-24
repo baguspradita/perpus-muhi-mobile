@@ -23,7 +23,7 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(peminjamanProvider.notifier).loadPeminjaman(isRiwayat: true);
+      ref.read(peminjamanProvider.notifier).loadPeminjamanRiwayat();
     });
   }
 
@@ -55,7 +55,7 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
                 ? _buildLoadingState()
                 : peminjamanState.errorMessage.isNotEmpty
                     ? _buildErrorState(peminjamanState.errorMessage)
-                    : _buildRiwayatList(peminjamanState.peminjaman),
+                    : _buildRiwayatList(peminjamanState.peminjamanRiwayat),
           ),
         ],
       ),
@@ -87,7 +87,7 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
           subtitle: error,
           actionLabel: 'Coba Lagi',
           onAction: () {
-            ref.read(peminjamanProvider.notifier).loadPeminjaman(isRiwayat: true);
+            ref.read(peminjamanProvider.notifier).loadAllData();
           },
         ),
       ),
@@ -105,7 +105,7 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
             subtitle: 'Riwayat peminjaman akan muncul di sini.',
             actionLabel: 'Muat Ulang',
             onAction: () {
-              ref.read(peminjamanProvider.notifier).loadPeminjaman(isRiwayat: true);
+              ref.read(peminjamanProvider.notifier).loadAllData();
             },
           ),
         ),

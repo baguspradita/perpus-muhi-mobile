@@ -8,26 +8,34 @@ import '../../domain/usecases/peminjaman_usecases.dart';
 
 class PeminjamanState {
   final bool isLoading;
-  final List<PeminjamanEntity> peminjaman;
+  final List<PeminjamanEntity> peminjamanAktif;
+  final List<PeminjamanEntity> peminjamanRiwayat;
   final String errorMessage;
 
   const PeminjamanState({
     this.isLoading = false,
-    this.peminjaman = const [],
+    this.peminjamanAktif = const [],
+    this.peminjamanRiwayat = const [],
     this.errorMessage = '',
   });
 
   PeminjamanState copyWith({
     bool? isLoading,
-    List<PeminjamanEntity>? peminjaman,
+    List<PeminjamanEntity>? peminjamanAktif,
+    List<PeminjamanEntity>? peminjamanRiwayat,
     String? errorMessage,
   }) {
     return PeminjamanState(
       isLoading: isLoading ?? this.isLoading,
-      peminjaman: peminjaman ?? this.peminjaman,
+      peminjamanAktif: peminjamanAktif ?? this.peminjamanAktif,
+      peminjamanRiwayat: peminjamanRiwayat ?? this.peminjamanRiwayat,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
+
+  // Helpers - data langsung dari API, tidak perlu filter client-side
+  List<PeminjamanEntity> get activeLoans => peminjamanAktif;
+  List<PeminjamanEntity> get riwayatLoans => peminjamanRiwayat;
 }
 
 class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
@@ -44,24 +52,59 @@ class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
         _kembaliPeminjamanUseCase = kembaliPeminjamanUseCase,
         super(const PeminjamanState());
 
+  // Legacy method - now replaced by separate methods
   Future<void> loadPeminjaman({String? status, bool isRiwayat = false}) async {
+    if (isRiwayat) {
+      await loadPeminjamanRiwayat();
+    } else {
+      await loadPeminjamanAktif();
+    }
+  }
+
+  Future<void> loadPeminjamanAktif({String? status}) async {
     state = state.copyWith(isLoading: true, errorMessage: '');
 
-    Either<Failure, List<PeminjamanEntity>> result;
-    if (isRiwayat) {
-      result = await _getRiwayatPeminjamanUseCase(status: status);
-    } else {
-      result = await _getPeminjamanListUseCase(status: status);
-    }
+    final result = await _getPeminjamanListUseCase(status: status);
 
     result.fold(
       (failure) {
         state = state.copyWith(isLoading: false, errorMessage: failure.message);
       },
       (list) {
-        state = state.copyWith(isLoading: false, peminjaman: list, errorMessage: '');
+        // Filter: exclude buku yang sudah dikembalikan (tglKembali sudah diisi)
+        final filtered = list.where((loan) =>
+          loan.tglKembali == null || loan.tglKembali!.isEmpty
+        ).toList();
+        
+        state = state.copyWith(isLoading: false, peminjamanAktif: filtered, errorMessage: '');
       },
     );
+  }
+
+  Future<void> loadPeminjamanRiwayat({String? status}) async {
+    state = state.copyWith(isLoading: true, errorMessage: '');
+
+    final result = await _getRiwayatPeminjamanUseCase(status: status);
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+      },
+      (list) {
+        state = state.copyWith(isLoading: false, peminjamanRiwayat: list, errorMessage: '');
+      },
+    );
+  }
+
+  Future<void> loadAllData() async {
+    state = state.copyWith(isLoading: true, errorMessage: '');
+    
+    await Future.wait([
+      loadPeminjamanAktif(),
+      loadPeminjamanRiwayat(),
+    ]);
+    
+    state = state.copyWith(isLoading: false);
   }
 
   Future<void> kembaliPeminjaman(int id) async {
@@ -71,7 +114,8 @@ class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
         state = state.copyWith(errorMessage: failure.message);
       },
       (_) {
-        loadPeminjaman();
+        // Reload both lists after return
+        loadAllData();
       },
     );
   }
@@ -82,5 +126,5 @@ final peminjamanProvider = StateNotifierProvider<PeminjamanNotifier, PeminjamanS
     getPeminjamanListUseCase: sl<GetPeminjamanListUseCase>(),
     getRiwayatPeminjamanUseCase: sl<GetRiwayatPeminjamanUseCase>(),
     kembaliPeminjamanUseCase: sl<KembaliPeminjamanUseCase>(),
-  )..loadPeminjaman();
+  )..loadAllData();
 });

@@ -27,7 +27,7 @@ class AppDrawer extends ConsumerWidget {
       child: SafeArea(
         child: Column(
           children: [
-            _buildHeader(user),
+            _buildHeader(context, user),
             const SizedBox(height: AppSpacing.lg),
             Expanded(
               child: ListView(
@@ -39,12 +39,18 @@ class AppDrawer extends ConsumerWidget {
                       _DrawerItem(
                         icon: Icons.person_outline,
                         label: 'Profil Saya',
-                        onTap: () => context.go(RouteNames.profile),
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go(RouteNames.profile);
+                        },
                       ),
                       _DrawerItem(
                         icon: Icons.settings_outlined,
                         label: 'Pengaturan',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go(RouteNames.profile);
+                        },
                       ),
                     ],
                   ),
@@ -55,12 +61,18 @@ class AppDrawer extends ConsumerWidget {
                       _DrawerItem(
                         icon: Icons.help_outline,
                         label: 'Bantuan & FAQ',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.push(RouteNames.faq);
+                        },
                       ),
                       _DrawerItem(
                         icon: Icons.info_outline,
                         label: 'Tentang Aplikasi',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.push(RouteNames.about);
+                        },
                       ),
                     ],
                   ),
@@ -74,7 +86,7 @@ class AppDrawer extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(UserEntity? user) {
+  Widget _buildHeader(BuildContext context, UserEntity? user) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: const BoxDecoration(
@@ -141,21 +153,30 @@ class AppDrawer extends ConsumerWidget {
                 child: _HeaderAction(
                   icon: Icons.badge_outlined,
                   label: 'Identitas',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push(RouteNames.identification);
+                  },
                 ),
               ),
               Expanded(
                 child: _HeaderAction(
                   icon: Icons.history_outlined,
                   label: 'Riwayat',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(RouteNames.peminjaman);
+                  },
                 ),
               ),
               Expanded(
                 child: _HeaderAction(
                   icon: Icons.favorite_outline,
                   label: 'Favorit',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(RouteNames.katalog);
+                  },
                 ),
               ),
             ],

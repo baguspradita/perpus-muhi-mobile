@@ -45,3 +45,33 @@ class GetFiltersUseCase {
     return _repository.getFilters();
   }
 }
+
+class GetRekomendasiBukuUseCase {
+  final BukuRepository _repository;
+
+  GetRekomendasiBukuUseCase(this._repository);
+
+  Future<Either<Failure, List<BukuEntity>>> call() async {
+    return _repository.getRekomendasiBuku();
+  }
+}
+
+class GetBukuBaruUseCase {
+  final BukuRepository _repository;
+
+  GetBukuBaruUseCase(this._repository);
+
+  Future<Either<Failure, List<BukuEntity>>> call() async {
+    return _repository.getBukuBaru();
+  }
+}
+
+class GetBukuPopulerUseCase {
+  final BukuRepository _repository;
+
+  GetBukuPopulerUseCase(this._repository);
+
+  Future<Either<Failure, List<BukuEntity>>> call() async {
+    return _repository.getBukuPopuler();
+  }
+}

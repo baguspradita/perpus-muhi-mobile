@@ -25,8 +25,8 @@ dependencies:
   json_serializable: ^6.9.0
   freezed_annotation: ^3.0.0
 
-  # Secure Storage for tokens
-  flutter_secure_storage: ^9.2.2
+  # Local Storage for tokens
+  shared_preferences: ^2.3.2
 
   # Routing
   go_router: ^14.6.0

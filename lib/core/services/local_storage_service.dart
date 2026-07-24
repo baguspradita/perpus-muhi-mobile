@@ -1,35 +1,23 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-abstract class LocalStorageService {
-  Future<void> write(String key, String value);
-  Future<String?> read(String key);
-  Future<void> delete(String key);
-  Future<void> clear();
-}
-
-class LocalStorageServiceImpl implements LocalStorageService {
-  final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
-  );
-
-  @override
+class LocalStorageService {
   Future<void> write(String key, String value) async {
-    await _storage.write(key: key, value: value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
   }
 
-  @override
   Future<String?> read(String key) async {
-    return _storage.read(key: key);
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key);
   }
 
-  @override
   Future<void> delete(String key) async {
-    await _storage.delete(key: key);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(key);
   }
 
-  @override
   Future<void> clear() async {
-    await _storage.deleteAll();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
   }
 }

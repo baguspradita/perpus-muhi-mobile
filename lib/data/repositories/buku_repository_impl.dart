@@ -60,4 +60,40 @@ class BukuRepositoryImpl implements BukuRepository {
       return Left(ServerFailure('Terjadi kesalahan: ${e.toString()}'));
     }
   }
+
+  @override
+  Future<Either<Failure, List<BukuEntity>>> getRekomendasiBuku() async {
+    try {
+      final books = await _remoteDataSource.getRekomendasiBuku();
+      return Right(books);
+    } on AppException catch (e) {
+      return Left(mapExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure('Terjadi kesalahan: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<BukuEntity>>> getBukuBaru() async {
+    try {
+      final books = await _remoteDataSource.getBukuBaru();
+      return Right(books);
+    } on AppException catch (e) {
+      return Left(mapExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure('Terjadi kesalahan: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<BukuEntity>>> getBukuPopuler() async {
+    try {
+      final books = await _remoteDataSource.getBukuPopuler();
+      return Right(books);
+    } on AppException catch (e) {
+      return Left(mapExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure('Terjadi kesalahan: ${e.toString()}'));
+    }
+  }
 }

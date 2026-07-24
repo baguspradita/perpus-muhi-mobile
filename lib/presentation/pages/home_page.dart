@@ -8,8 +8,12 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/app_radius.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/entities/peminjaman_entity.dart';
+import '../../domain/entities/buku_entity.dart';
 import '../providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../providers/peminjaman_provider.dart';
+import '../providers/dashboard_buku_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/stat_card.dart';
 
@@ -23,10 +27,16 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      endDrawer: const AppDrawer(),
+      drawer: const AppDrawer(),
       appBar: AppBar(
         title: const Text('Perpustakaan Muhi'),
         automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.primary),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -63,6 +73,12 @@ class HomePage extends ConsumerWidget {
             _buildStatsSection(context, ref),
             const SizedBox(height: AppSpacing.xl),
             _buildActiveLoansSection(context, ref),
+            const SizedBox(height: AppSpacing.xl),
+            _buildBookSection(context, 'Rekomendasi Untuk Anda', ref.watch(dashboardBukuProvider).rekomendasiBuku),
+            const SizedBox(height: AppSpacing.xl),
+            _buildBookSection(context, 'Buku Baru', ref.watch(dashboardBukuProvider).bukuBaru),
+            const SizedBox(height: AppSpacing.xl),
+            _buildBookSection(context, 'Buku Populer Bulan Ini', ref.watch(dashboardBukuProvider).bukuPopuler),
           ],
         ),
       ),
@@ -164,6 +180,25 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _buildActiveLoansSection(BuildContext context, WidgetRef ref) {
+    final peminjamanState = ref.watch(peminjamanProvider);
+    
+    // Get only active loans
+    final activeLoans = peminjamanState.peminjamanAktif
+        .where((loan) => loan.status.toLowerCase() == 'dipinjam')
+        .take(3)
+        .toList();
+
+    if (activeLoans.isEmpty && !peminjamanState.isLoading) {
+      return const SizedBox.shrink();
+    }
+
+    if (peminjamanState.isLoading) {
+      return const SizedBox(
+        height: 200,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -193,16 +228,29 @@ class HomePage extends ConsumerWidget {
           height: 200,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: 3,
+            itemCount: activeLoans.length,
             separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-            itemBuilder: (context, index) => _buildBookLoanCard(),
+            itemBuilder: (context, index) => _buildBookLoanCard(activeLoans[index]),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBookLoanCard() {
+  Widget _buildBookLoanCard(PeminjamanEntity loan) {
+    final detail = loan.details.firstOrNull;
+    final dueDate = loan.tglJatuhTempo;
+    
+    String formatDate(String dateStr) {
+      if (dateStr.isEmpty) return '';
+      try {
+        final date = DateTime.parse(dateStr);
+        return '${date.day.toString().padLeft(2, '0')} ${['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agus', 'Sep', 'Okt', 'Nov', 'Des'][date.month - 1]}, ${date.year}';
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
     return Container(
       width: 160,
       decoration: BoxDecoration(
@@ -262,7 +310,7 @@ class HomePage extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Fisika Quantum Modern',
+                    detail?.judulBuku ?? 'Buku Pinjaman',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.bodySm.copyWith(
@@ -271,7 +319,7 @@ class HomePage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Tempo: 24 Okt 2023',
+                    'Tempo: ${formatDate(dueDate)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.bodySmall.copyWith(
@@ -283,6 +331,126 @@ class HomePage extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBookSection(BuildContext context, String title, List<BukuEntity> books) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: AppTypography.headlineMd,
+            ),
+            TextButton(
+              onPressed: () {
+                context.go(RouteNames.katalog);
+              },
+              child: Text(
+                'Lihat Semua',
+                style: AppTypography.bodySm.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 200,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: books.length,
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+            itemBuilder: (context, index) => _buildBookCard(context, books[index]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBookCard(BuildContext context, BukuEntity book) {
+    const colors = [
+      Color(0xFF6C63FF),
+      Color(0xFF00B894),
+      Color(0xFFE17055),
+      Color(0xFF74B9FF),
+      Color(0xFFA29BFE),
+      Color(0xFFFD79A8),
+    ];
+    final coverColor = colors[book.id % colors.length];
+
+    return GestureDetector(
+      onTap: () {
+        context.go(RouteNames.katalog);
+      },
+      child: Container(
+        width: 140,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: AppRadius.rXl,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadowPrimary,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: coverColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.menu_book,
+                  size: 40,
+                  color: Colors.white70,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book.judul,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySm.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      book.penulis,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

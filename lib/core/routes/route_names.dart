@@ -9,4 +9,7 @@ abstract class RouteNames {
   static const String editProfile = '/profile/edit';
   static const String changePassword = '/profile/change-password';
   static const String notifications = '/notifications';
+  static const String about = '/about';
+  static const String faq = '/faq';
+  static const String identification = '/identification';
 }

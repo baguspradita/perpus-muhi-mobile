@@ -33,9 +33,9 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
   void _handleTabChange() {
     if (_tabController.indexIsChanging) return;
     if (_tabController.index == 1) {
-      ref.read(peminjamanProvider.notifier).loadPeminjaman(isRiwayat: true);
+      ref.read(peminjamanProvider.notifier).loadPeminjamanRiwayat();
     } else {
-      ref.read(peminjamanProvider.notifier).loadPeminjaman();
+      ref.read(peminjamanProvider.notifier).loadPeminjamanAktif();
     }
   }
 
@@ -51,7 +51,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Pinjaman'),
+        title: Text(_tabController.index == 0 ? 'Pinjaman' : 'Riwayat Peminjaman'),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -122,7 +122,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
               ? _buildLoadingState()
               : peminjamanState.errorMessage.isNotEmpty
                   ? _buildErrorState(peminjamanState.errorMessage)
-                  : _buildPeminjamanList(peminjamanState.peminjaman),
+                  : _buildPeminjamanList(peminjamanState.peminjamanAktif),
         ),
       ],
     );
@@ -138,7 +138,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
               ? _buildLoadingState()
               : peminjamanState.errorMessage.isNotEmpty
                   ? _buildErrorState(peminjamanState.errorMessage)
-                  : _buildPeminjamanList(peminjamanState.peminjaman),
+                  : _buildPeminjamanList(peminjamanState.peminjamanRiwayat),
         ),
       ],
     );
@@ -169,7 +169,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
           subtitle: error,
           actionLabel: 'Coba Lagi',
           onAction: () {
-            ref.read(peminjamanProvider.notifier).loadPeminjaman();
+            ref.read(peminjamanProvider.notifier).loadAllData();
           },
         ),
       ),
@@ -191,9 +191,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
                 : 'Riwayat peminjaman Anda akan muncul di sini.',
             actionLabel: 'Muat Ulang',
             onAction: () {
-              ref.read(peminjamanProvider.notifier).loadPeminjaman(
-                    isRiwayat: _tabController.index == 1,
-                  );
+              ref.read(peminjamanProvider.notifier).loadAllData();
             },
           ),
         ),
@@ -318,10 +316,9 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDetailRow('ID', peminjaman.id.toString()),
               _buildDetailRow('Peminjam', peminjaman.userName),
-              _buildDetailRow('Tanggal Pinjam', peminjaman.tglPinjam),
-              _buildDetailRow('Jatuh Tempo', peminjaman.tglJatuhTempo),
+              _buildDetailRow('Tanggal Pinjam', formatDate(peminjaman.tglPinjam)),
+              _buildDetailRow('Jatuh Tempo', formatDate(peminjaman.tglJatuhTempo)),
               _buildDetailRow('Status', peminjaman.status),
               if (peminjaman.denda != null && peminjaman.denda! > 0)
                 _buildDetailRow('Denda', 'Rp ${peminjaman.denda}'),
@@ -374,5 +371,19 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
         ],
       ),
     );
+  }
+
+  String formatDate(String dateStr) {
+    if (dateStr.isEmpty) return '-';
+    try {
+      final date = DateTime.parse(dateStr);
+      final months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      return '${date.day} ${months[date.month - 1]} ${date.year}';
+    } catch (e) {
+      return dateStr;
+    }
   }
 }

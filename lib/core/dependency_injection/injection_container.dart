@@ -36,7 +36,7 @@ Future<void> initDependencies() async {
   // ═══════════════════════════════════════════
   sl.registerLazySingleton<InternetConnection>(() => InternetConnection());
   sl.registerLazySingleton<Dio>(() => _createDio());
-  sl.registerLazySingleton<LocalStorageService>(() => LocalStorageServiceImpl());
+  sl.registerLazySingleton<LocalStorageService>(() => LocalStorageService());
 
   // ═══════════════════════════════════════════
   // Core
@@ -107,6 +107,15 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton<GetFiltersUseCase>(
     () => GetFiltersUseCase(sl<BukuRepository>()),
+  );
+  sl.registerLazySingleton<GetRekomendasiBukuUseCase>(
+    () => GetRekomendasiBukuUseCase(sl<BukuRepository>()),
+  );
+  sl.registerLazySingleton<GetBukuBaruUseCase>(
+    () => GetBukuBaruUseCase(sl<BukuRepository>()),
+  );
+  sl.registerLazySingleton<GetBukuPopulerUseCase>(
+    () => GetBukuPopulerUseCase(sl<BukuRepository>()),
   );
   sl.registerLazySingleton<GetPeminjamanListUseCase>(
     () => GetPeminjamanListUseCase(sl<PeminjamanRepository>()),

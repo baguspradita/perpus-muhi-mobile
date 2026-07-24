@@ -87,4 +87,49 @@ class BukuRemoteDataSource {
       rethrow;
     }
   }
+
+  Future<List<BukuEntity>> getRekomendasiBuku() async {
+    try {
+      final response = await _apiClient.dio.get(ApiConstants.dashboardRekomendasi);
+      final data = response.data;
+
+      if (data is Map<String, dynamic> && data['data'] is List) {
+        return (data['data'] as List).map((e) => BukuEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
+
+      return [];
+    } on DioException {
+      rethrow;
+    }
+  }
+
+  Future<List<BukuEntity>> getBukuBaru() async {
+    try {
+      final response = await _apiClient.dio.get(ApiConstants.dashboardBukuBaru);
+      final data = response.data;
+
+      if (data is Map<String, dynamic> && data['data'] is List) {
+        return (data['data'] as List).map((e) => BukuEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
+
+      return [];
+    } on DioException {
+      rethrow;
+    }
+  }
+
+  Future<List<BukuEntity>> getBukuPopuler() async {
+    try {
+      final response = await _apiClient.dio.get(ApiConstants.dashboardBukuPopuler);
+      final data = response.data;
+
+      if (data is Map<String, dynamic> && data['data'] is List) {
+        return (data['data'] as List).map((e) => BukuEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
+
+      return [];
+    } on DioException {
+      rethrow;
+    }
+  }
 }

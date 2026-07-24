@@ -44,6 +44,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final RegisterUseCase _registerUseCase;
   final LogoutUseCase _logoutUseCase;
   final GetProfileUseCase _getProfileUseCase;
+  bool _initialized = false;
 
   AuthNotifier({
     required this._loginUseCase,
@@ -53,6 +54,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   })  : super(const AuthState());
 
   Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+
     state = state.copyWith(isLoading: true);
 
     final token = await sl<LocalStorageService>().read('access_token');
@@ -103,6 +107,37 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(errorMessage: '');
   }
 
+  Future<bool> login({
+    required String email,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: '');
+
+    final result = await _loginUseCase(email: email, password: password);
+
+    return result.fold(
+      (failure) async {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (authToken) async {
+        await sl<LocalStorageService>().write('access_token', authToken.accessToken);
+        state = state.copyWith(isLoading: false, authToken: authToken, isAuthenticated: true, errorMessage: '');
+        await loadUserProfile();
+        if (state.user?.role == 'petugas') {
+          await sl<LocalStorageService>().delete('access_token');
+          state = const AuthState(
+            isLoading: false,
+            isAuthenticated: false,
+            errorMessage: 'Akses tidak diizinkan: akun petugas tidak dapat menggunakan aplikasi mobile. Silakan gunakan website admin.',
+          );
+          return false;
+        }
+        return true;
+      },
+    );
+  }
+
   Future<bool> register({
     required String nama,
     required String email,
@@ -143,34 +178,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await sl<LocalStorageService>().write('access_token', authToken.accessToken);
         state = state.copyWith(isLoading: false, authToken: authToken, isAuthenticated: true, errorMessage: '');
         await loadUserProfile();
-        return true;
-      },
-    );
-  }
-
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
-    state = state.copyWith(isLoading: true, errorMessage: '');
-
-    final result = await _loginUseCase(email: email, password: password);
-
-    return result.fold(
-      (failure) async {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (authToken) async {
-        await sl<LocalStorageService>().write('access_token', authToken.accessToken);
-        state = state.copyWith(isLoading: false, authToken: authToken, isAuthenticated: true, errorMessage: '');
-        await loadUserProfile();
         if (state.user?.role == 'petugas') {
           await sl<LocalStorageService>().delete('access_token');
           state = const AuthState(
             isLoading: false,
             isAuthenticated: false,
-            errorMessage: 'Akses tidak diizinkan: akun petugas tidak dapat menggunakan aplikasi mobile. Silakan gunakan website admin.',
+            errorMessage: 'Akses tidak diizinkan: akun petugas tidak dapat mengakses aplikasi mobile. Silakan gunakan website admin.',
           );
           return false;
         }
@@ -179,19 +192,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
-  Future<void> loadUserProfile() async {
+Future<void> loadUserProfile() async {
     print('=== loadUserProfile START ===');
     final result = await _getProfileUseCase();
     result.fold(
       (failure) {
         print('loadUserProfile FAILED: ${failure.message} (${failure.runtimeType})');
-        if (!state.isAuthenticated) {
+        if (state.isAuthenticated) {
+          state = state.copyWith(errorMessage: failure.message);
+        } else {
           state = state.copyWith(isAuthenticated: false, errorMessage: failure.message);
         }
       },
       (user) {
         print('loadUserProfile SUCCESS: ${user.nama} (${user.role})');
-        state = state.copyWith(user: user);
+        state = state.copyWith(user: user, isAuthenticated: true);
       },
     );
     print('=== loadUserProfile END ===');
@@ -219,5 +234,5 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>(
     registerUseCase: sl<RegisterUseCase>(),
     logoutUseCase: sl<LogoutUseCase>(),
     getProfileUseCase: sl<GetProfileUseCase>(),
-  ),
+  )..initialize(),
 );
