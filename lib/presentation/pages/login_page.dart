@@ -45,15 +45,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
       ),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 30),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 30), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+          ),
+        );
 
     _animationController.forward();
   }
@@ -69,7 +67,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref.read(authNotifierProvider.notifier).login(
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -92,13 +92,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
             return SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.xxl,
+                    vertical: AppSpacing.xl,
                   ),
                   child: FadeTransition(
                     opacity: _fadeAnimation,
@@ -138,36 +136,36 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Column(
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: 76,
+          height: 76,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: AppRadius.rXl,
+            borderRadius: AppRadius.rMd,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: AppRadius.rXl,
+            borderRadius: AppRadius.rMd,
             child: Image.asset(
               'assets/images/logo-muhi.png',
               fit: BoxFit.cover,
-              width: 80,
-              height: 80,
+              width: 76,
+              height: 76,
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
         Text(
           'Selamat Datang',
           style: AppTypography.heading1.copyWith(
-            fontSize: 28,
+            fontSize: 26,
             fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
+            letterSpacing: -0.3,
             color: AppColors.textPrimary,
           ),
           textAlign: TextAlign.center,
@@ -197,7 +195,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           prefixIcon: const Icon(Icons.email_outlined, size: 20),
           validator: Validators.email,
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         AppTextField(
           labelText: 'Kata Sandi',
           hintText: 'Masukkan kata sandi',
@@ -218,10 +216,10 @@ class _LoginPageState extends ConsumerState<LoginPage>
           validator: Validators.password,
         ),
         if (authState.errorMessage.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           _buildErrorMessage(authState.errorMessage),
         ],
-        const SizedBox(height: AppSpacing.xxl),
+        const SizedBox(height: AppSpacing.xl),
         AppButton(
           label: 'Masuk',
           isExpanded: true,
@@ -238,7 +236,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: AppRadius.rLg,
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
       ),
       child: Row(
@@ -259,9 +257,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           Expanded(
             child: Text(
               message,
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.error,
-              ),
+              style: AppTypography.bodyMedium.copyWith(color: AppColors.error),
             ),
           ),
         ],

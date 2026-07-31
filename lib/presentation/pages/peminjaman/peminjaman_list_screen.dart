@@ -60,11 +60,11 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(58),
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
+              vertical: AppSpacing.xs,
             ),
             child: Container(
               decoration: BoxDecoration(
@@ -94,7 +94,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
       ),
       body: Column(
         children: [
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
           Expanded(
             child: _tabController.index == 0
                 ? _buildActiveTab(context)
@@ -116,7 +116,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
             hintText: 'Cari nama siswa atau buku...',
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         Expanded(
           child: peminjamanState.isLoading
               ? _buildLoadingState()
@@ -146,12 +146,12 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       itemCount: 4,
       itemBuilder: (_, __) => const Padding(
-        padding: EdgeInsets.only(bottom: AppSpacing.md),
+        padding: EdgeInsets.only(bottom: AppSpacing.sm),
         child: LoadingShimmer(
-          height: 100,
+          height: 94,
           width: double.infinity,
           borderRadius: 16,
         ),
@@ -162,7 +162,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
   Widget _buildErrorState(String error) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: EmptyState(
           icon: Icons.error_outline,
           title: 'Gagal Memuat Data',
@@ -180,7 +180,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
     if (peminjaman.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: EmptyState(
             icon: Icons.history_outlined,
             title: _tabController.index == 0
@@ -199,10 +199,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.md),
       itemCount: peminjaman.length,
       itemBuilder: (context, index) =>
           _buildPeminjamanCard(context, peminjaman[index]),
@@ -215,10 +212,10 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
         peminjaman.tglKembali != null;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: AppRadius.rMd,
         border: Border.all(
           color: isReturned ? AppColors.successLight : AppColors.warningLight,
@@ -233,12 +230,12 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.sm),
         child: Row(
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
                 color: isReturned ? AppColors.successLight : AppColors.warningLight,
                 borderRadius: AppRadius.rMd,
@@ -246,10 +243,10 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
               child: Icon(
                 isReturned ? Icons.check_circle : Icons.book,
                 color: isReturned ? AppColors.success : AppColors.warning,
-                size: 28,
+                size: 26,
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,16 +256,16 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
                     style: AppTypography.bodyLg
                         .copyWith(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: 2),
                   Text(
                     peminjaman.tglPinjam,
                     style: AppTypography.bodySmall
                         .copyWith(color: AppColors.textSecondary),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: 2),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                        horizontal: AppSpacing.sm, vertical: 3),
                     decoration: BoxDecoration(
                       color: isReturned
                           ? AppColors.successLight
@@ -322,12 +319,12 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
               _buildDetailRow('Status', peminjaman.status),
               if (peminjaman.denda != null && peminjaman.denda! > 0)
                 _buildDetailRow('Denda', 'Rp ${peminjaman.denda}'),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.sm),
               Text('Detail Buku:',
                   style: AppTypography.heading3.copyWith(fontSize: 14)),
               ...peminjaman.details.map(
                 (detail) => Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xs),
+                  padding: const EdgeInsets.only(top: 2),
                   child: Row(
                     children: [
                       const Icon(Icons.book, size: 16),
@@ -357,7 +354,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

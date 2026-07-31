@@ -35,13 +35,13 @@ class UserAvatar extends StatelessWidget {
         border: showBorder
             ? Border.all(
                 color: borderColor ?? AppColors.primaryLight,
-                width: 2,
+                width: 1.5,
               )
             : null,
         boxShadow: [
           BoxShadow(
-            color: bgColor.withAlpha(38),
-            blurRadius: 4,
+            color: bgColor.withAlpha(28),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -70,13 +70,13 @@ class UserAvatar extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: AppColors.surface,
-                    width: 2,
+                    width: 1.5,
                   ),
                 ),
                 child: Icon(
                   Icons.camera_alt,
                   color: AppColors.primary,
-                  size: size * 0.15,
+                  size: size * 0.14,
                 ),
               ),
             ),

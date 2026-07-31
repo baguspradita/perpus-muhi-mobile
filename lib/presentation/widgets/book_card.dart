@@ -43,12 +43,12 @@ class BookCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowPrimary,
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: AppColors.shadowPrimary.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -64,7 +64,7 @@ class BookCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: coverColor,
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(24),
+                        top: Radius.circular(16),
                       ),
                     ),
                   ),
@@ -116,12 +116,12 @@ class BookCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowPrimary,
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: AppColors.shadowPrimary.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -135,7 +135,7 @@ class BookCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: coverColor,
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
+                  top: Radius.circular(16),
                 ),
               ),
               padding: const EdgeInsets.all(AppSpacing.lg),
@@ -246,7 +246,7 @@ class BookCard extends StatelessWidget {
     return AppBadge(
       text: text,
       variant: variant,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
     );
   }
 }

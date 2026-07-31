@@ -10,7 +10,8 @@ abstract class AppTypography {
     fontSize: 32,
     fontWeight: FontWeight.w700,
     color: AppColors.textHeading,
-    letterSpacing: -0.02,
+    letterSpacing: -0.03,
+    height: 1.15,
   );
 
   // Headline LG Mobile (24px) - Page titles on mobile
@@ -18,7 +19,8 @@ abstract class AppTypography {
     fontSize: 24,
     fontWeight: FontWeight.w700,
     color: AppColors.textHeading,
-    letterSpacing: -0.01,
+    letterSpacing: -0.02,
+    height: 1.18,
   );
 
   // Headline MD (20px) - Book titles within cards
@@ -26,6 +28,7 @@ abstract class AppTypography {
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: AppColors.textHeading,
+    height: 1.22,
   );
 
   // Body LG (16px) - Descriptions and long-form text
@@ -33,6 +36,7 @@ abstract class AppTypography {
     fontSize: 16,
     fontWeight: FontWeight.w400,
     color: AppColors.textBody,
+    height: 1.55,
   );
 
   // Body SM (14px) - Secondary text
@@ -40,6 +44,7 @@ abstract class AppTypography {
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textBody,
+    height: 1.5,
   );
 
   // Label MD (12px) - Metadata like ISBN numbers or publication years
@@ -47,14 +52,13 @@ abstract class AppTypography {
     fontSize: 12,
     fontWeight: FontWeight.w600,
     color: AppColors.textSecondary,
-    letterSpacing: 0.01,
+    letterSpacing: 0.02,
+    height: 1.2,
   );
 
   // Button (15px)
-  static TextStyle get button => GoogleFonts.inter(
-    fontSize: 15,
-    fontWeight: FontWeight.w600,
-  );
+  static TextStyle get button =>
+      GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, height: 1.1);
 
   // ==================== LEGACY ALIASES (for backward compatibility) ====================
   static TextStyle get display => headlineLg;
@@ -64,7 +68,8 @@ abstract class AppTypography {
     fontSize: 15,
     fontWeight: FontWeight.w600,
     color: AppColors.textHeading,
-    letterSpacing: -0.1,
+    letterSpacing: -0.05,
+    height: 1.25,
   );
   static TextStyle get bodyMd => bodyLg;
   static TextStyle get bodyLarge => bodyLg;
@@ -86,6 +91,7 @@ abstract class AppTypography {
     fontSize: 28,
     fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
-    letterSpacing: -0.5,
+    letterSpacing: -0.6,
+    height: 1.0,
   );
 }

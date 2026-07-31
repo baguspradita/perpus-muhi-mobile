@@ -28,7 +28,7 @@ class AppDrawer extends ConsumerWidget {
         child: Column(
           children: [
             _buildHeader(context, user),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -88,7 +88,7 @@ class AppDrawer extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context, UserEntity? user) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(color: AppColors.outlineVariant, width: 1),
@@ -100,7 +100,7 @@ class AppDrawer extends ConsumerWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 28,
+                radius: 24,
                 backgroundColor: AppColors.primaryContainer,
                 child: Text(
                   user?.nama?.isNotEmpty == true
@@ -146,7 +146,7 @@ class AppDrawer extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(
@@ -188,7 +188,7 @@ class AppDrawer extends ConsumerWidget {
 
   Widget _buildFooter(BuildContext context, WidgetRef ref) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: const BoxDecoration(
         border: Border(
           top: BorderSide(color: AppColors.outlineVariant, width: 1),
@@ -202,12 +202,10 @@ class AppDrawer extends ConsumerWidget {
             isDestructive: true,
             onTap: () => _showLogoutDialog(context, ref),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'v1.0.0',
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.outline,
-            ),
+            style: AppTypography.bodySmall.copyWith(color: AppColors.outline),
           ),
         ],
       ),
@@ -232,9 +230,7 @@ class AppDrawer extends ConsumerWidget {
               Navigator.pop(context);
               ref.read(authNotifierProvider.notifier).logout();
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Keluar'),
           ),
         ],
@@ -261,9 +257,7 @@ class _DrawerSection extends StatelessWidget {
           ),
           child: Text(
             title,
-            style: AppTypography.labelMd.copyWith(
-              color: AppColors.outline,
-            ),
+            style: AppTypography.labelMd.copyWith(color: AppColors.outline),
           ),
         ),
         ...children,
@@ -288,19 +282,21 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isDestructive ? AppColors.error : AppColors.onSurfaceVariant;
-    final bgColor = isDestructive ? AppColors.errorLight : AppColors.surfaceContainerLow;
+    final bgColor = isDestructive
+        ? AppColors.errorLight
+        : AppColors.surfaceContainerLow;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+      margin: const EdgeInsets.only(bottom: 2),
       child: ListTile(
         leading: Container(
-          width: 36,
-          height: 36,
+          width: 34,
+          height: 34,
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: AppRadius.rMd,
           ),
-          child: Icon(icon, color: color, size: 20),
+          child: Icon(icon, color: color, size: 19),
         ),
         title: Text(
           label,
@@ -311,9 +307,12 @@ class _DrawerItem extends StatelessWidget {
         ),
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 2,
+        ),
         dense: true,
+        visualDensity: VisualDensity.compact,
       ),
     );
   }

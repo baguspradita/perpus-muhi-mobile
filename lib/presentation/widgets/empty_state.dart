@@ -24,24 +24,24 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 72,
+              height: 72,
               decoration: BoxDecoration(
                 color: AppColors.borderLight,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                size: 40,
+                size: 36,
                 color: AppColors.textMuted,
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             Text(
               title,
               style: AppTypography.heading3.copyWith(
@@ -53,7 +53,7 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               Text(
                 subtitle!,
-                maxLines: 6,
+                maxLines: 5,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.bodyMedium.copyWith(
                   color: AppColors.textSecondary,
@@ -62,7 +62,7 @@ class EmptyState extends StatelessWidget {
               ),
             ],
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.lg),
               ElevatedButton(
                 onPressed: onAction,
                 style: ElevatedButton.styleFrom(
@@ -71,6 +71,7 @@ class EmptyState extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: AppRadius.rMd,
                   ),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
                 child: Text(actionLabel!),
               ),

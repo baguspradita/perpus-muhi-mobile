@@ -42,7 +42,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final d = p.hitungDenda();
       if (d > 0) {
         dendaAktif += d;
-        print('ID:${p.id} | Status:${p.status} | TglKembali:${p.tglKembali} | Denda:$d');
+        print(
+          'ID:${p.id} | Status:${p.status} | TglKembali:${p.tglKembali} | Denda:$d',
+        );
       }
     }
     print('=== TOTAL DENDA AKTIF: $dendaAktif ===');
@@ -72,12 +74,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildProfileHeader(context, user),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             ProfileStatsSection(
               totalPinjam: peminjamanState.peminjamanAktif.length,
               dendaAktif: _totalDenda,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             _buildMenuList(context, ref),
           ],
         ),
@@ -88,27 +90,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildProfileHeader(BuildContext context, dynamic user) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
-        borderRadius: AppRadius.rXl,
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowPrimary,
-            blurRadius: 8,
+            color: AppColors.shadowPrimary.withValues(alpha: 0.05),
+            blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          UserAvatar(
-            name: user?.nama ?? 'U',
-            size: 100,
-            showBorder: true,
-          ),
-          const SizedBox(height: AppSpacing.md),
+          UserAvatar(name: user?.nama ?? 'U', size: 84, showBorder: true),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             user?.nama ?? '-',
             style: AppTypography.headlineMd,
@@ -124,15 +122,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               if (user?.nisn != null) ...[
                 const SizedBox(width: AppSpacing.sm),
-                AppBadge(
-                  text: 'NISN: ${user?.nisn}',
-                ),
+                AppBadge(text: 'NISN: ${user?.nisn}'),
               ],
               if (user?.nip != null) ...[
                 const SizedBox(width: AppSpacing.sm),
-                AppBadge(
-                  text: 'NIP: ${user?.nip}',
-                ),
+                AppBadge(text: 'NIP: ${user?.nip}'),
               ],
             ],
           ),
@@ -190,12 +184,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: const BoxDecoration(
           color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -203,7 +195,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           children: [
             Center(
               child: Container(
-                width: 40,
+                width: 36,
                 height: 4,
                 decoration: BoxDecoration(
                   color: AppColors.outlineVariant,
@@ -211,11 +203,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Bantuan & FAQ',
-              style: AppTypography.headlineMd,
-            ),
+            const SizedBox(height: AppSpacing.md),
+            Text('Bantuan & FAQ', style: AppTypography.headlineMd),
             const SizedBox(height: AppSpacing.md),
             _buildFAQItem(
               'Bagaimana cara meminjam buku?',
@@ -227,9 +216,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             _buildFAQItem(
               'Apakah ada denda keterlambatan?',
-            'Ya, denda akan dikenakan jika melewati batas waktu pengembalian. Hubungi petugas untuk informasi lebih lanjut.',
+              'Ya, denda akan dikenakan jika melewati batas waktu pengembalian. Hubungi petugas untuk informasi lebih lanjut.',
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -246,22 +235,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildFAQItem(String question, String answer) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             question,
-            style: AppTypography.bodyMd.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTypography.bodyMd.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             answer,
-            style: AppTypography.bodySm.copyWith(
-              color: AppColors.outline,
-            ),
+            style: AppTypography.bodySm.copyWith(color: AppColors.outline),
           ),
         ],
       ),

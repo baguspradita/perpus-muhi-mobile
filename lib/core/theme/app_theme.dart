@@ -30,6 +30,7 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.onSurface,
         centerTitle: true,
+        toolbarHeight: 68,
         titleTextStyle: AppTypography.heading3,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -39,9 +40,7 @@ class AppTheme {
           elevation: 0,
           shadowColor: AppColors.shadowPrimary,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.rPill,
-          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.rPill),
           textStyle: AppTypography.button,
           minimumSize: const Size.fromHeight(48),
         ),
@@ -51,9 +50,7 @@ class AppTheme {
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.rPill,
-          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.rPill),
           textStyle: AppTypography.button,
           minimumSize: const Size.fromHeight(48),
         ),
@@ -62,46 +59,53 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          textStyle: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+          textStyle: AppTypography.bodyMedium.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           borderSide: const BorderSide(color: AppColors.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           borderSide: const BorderSide(color: AppColors.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
         labelStyle: AppTypography.labelMd,
         hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.outline),
         errorStyle: AppTypography.bodySmall.copyWith(color: AppColors.error),
-        floatingLabelStyle: AppTypography.labelMd.copyWith(color: AppColors.primary),
+        floatingLabelStyle: AppTypography.labelMd.copyWith(
+          color: AppColors.primary,
+        ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
         shadowColor: AppColors.shadowPrimary,
         shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           side: const BorderSide(color: AppColors.outlineVariant),
         ),
-        color: AppColors.surfaceContainerLowest,
+        color: AppColors.surface,
         margin: const EdgeInsets.all(0),
       ),
       dividerTheme: const DividerThemeData(
@@ -112,7 +116,9 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.inverseSurface,
-        contentTextStyle: AppTypography.bodyMedium.copyWith(color: AppColors.inverseOnSurface),
+        contentTextStyle: AppTypography.bodyMedium.copyWith(
+          color: AppColors.inverseOnSurface,
+        ),
         shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
         actionTextColor: AppColors.inversePrimary,
       ),
@@ -121,7 +127,7 @@ class AppTheme {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.outline,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
       ),
     );
 

@@ -21,7 +21,7 @@ class BookDetailScreen extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 280,
+            expandedHeight: 260,
             pinned: true,
             backgroundColor: AppColors.primary,
             flexibleSpace: FlexibleSpaceBar(
@@ -44,23 +44,23 @@ class BookDetailScreen extends ConsumerWidget {
                       tag: 'book_cover_${book.id}',
                       child: Container(
                         width: 160,
-                        height: 220,
-                        margin: const EdgeInsets.only(top: 40),
+                        height: 210,
+                        margin: const EdgeInsets.only(top: 36),
                         decoration: BoxDecoration(
                           color: _getCoverColor(book.id),
                           borderRadius: AppRadius.rMd,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              color: Colors.black.withOpacity(0.16),
+                              blurRadius: 18,
+                              offset: const Offset(0, 6),
                             ),
                           ],
                         ),
                         child: Center(
                           child: Icon(
                             Icons.menu_book,
-                            size: 60,
+                            size: 56,
                             color: Colors.white.withOpacity(0.3),
                           ),
                         ),
@@ -78,13 +78,13 @@ class BookDetailScreen extends ConsumerWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     book.judul,
-                    style: AppTypography.heading2.copyWith(fontSize: 22),
+                    style: AppTypography.heading2.copyWith(fontSize: 20),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -95,7 +95,7 @@ class BookDetailScreen extends ConsumerWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.lg),
                   Text('Detail', style: AppTypography.heading3),
                   const SizedBox(height: AppSpacing.sm),
                   _buildDetailRow('Nomor Salinan', book.nomorSalinan ?? '-'),
@@ -104,7 +104,7 @@ class BookDetailScreen extends ConsumerWidget {
                   _buildDetailRow('Kategori', book.namaKategori ?? '-'),
                   _buildDetailRow('Subjek', book.namaSubjek ?? '-'),
                   _buildDetailRow('Lokasi', book.namaLokasi ?? '-'),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.lg),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -120,7 +120,7 @@ class BookDetailScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.xl),
                 ],
               ),
             ),
@@ -128,14 +128,14 @@ class BookDetailScreen extends ConsumerWidget {
         ],
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, -1),
             ),
           ],
         ),

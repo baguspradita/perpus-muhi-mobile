@@ -25,7 +25,7 @@ class CategoryChip extends StatelessWidget {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm + 2,
+          vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
@@ -36,8 +36,8 @@ class CategoryChip extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.shadowPrimary,
-                    blurRadius: 6,
+                    color: AppColors.shadowPrimary.withValues(alpha: 0.08),
+                    blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
                 ]
@@ -70,7 +70,7 @@ class CategoryChipsScroll extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 40,
+      height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -106,11 +106,11 @@ class CategoryItem {
 
   static List<CategoryItem> fromApiData(List<dynamic> apiList) {
     return apiList.map((item) {
-      final nama = item['nama_kategori'] as String? ?? item['nama_subjek'] as String? ?? 'Lainnya';
-      return CategoryItem(
-        id: item['id'] as int?,
-        label: nama,
-      );
+      final nama =
+          item['nama_kategori'] as String? ??
+          item['nama_subjek'] as String? ??
+          'Lainnya';
+      return CategoryItem(id: item['id'] as int?, label: nama);
     }).toList();
   }
 }

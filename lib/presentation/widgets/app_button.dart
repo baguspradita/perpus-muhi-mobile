@@ -62,7 +62,7 @@ class _AppButtonState extends State<AppButton> {
   }
 
 EdgeInsets get _padding {
-    return EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg);
+  return EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md);
   }
 
   @override
@@ -86,8 +86,8 @@ EdgeInsets get _padding {
         style: ElevatedButton.styleFrom(
           backgroundColor: _backgroundColor,
           foregroundColor: _foregroundColor,
-          elevation: _isPressed ? 0 : 2,
-          shadowColor: AppColors.primary.withAlpha(77),
+          elevation: _isPressed ? 0 : 1,
+          shadowColor: AppColors.primary.withAlpha(51),
           padding: _padding,
           shape: RoundedRectangleBorder(
             borderRadius: AppRadius.rMd,
@@ -117,7 +117,7 @@ EdgeInsets get _padding {
                       size: 20,
                       color: _foregroundColor,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                   ],
                   Text(widget.label),
                 ],

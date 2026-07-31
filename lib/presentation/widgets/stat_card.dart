@@ -35,12 +35,12 @@ class StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: bgColor ?? AppColors.surfaceContainerLowest,
-        borderRadius: AppRadius.rXl,
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: shadowColor ?? AppColors.shadowPrimary,
-            blurRadius: 8,
+            color: (shadowColor ?? AppColors.shadowPrimary).withValues(alpha: 0.05),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -54,7 +54,7 @@ class StatCard extends StatelessWidget {
       children: [
         // Icon container
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: (bgColor ?? AppColors.surfaceContainerLow).withAlpha(100),
             borderRadius: AppRadius.rMd,
@@ -62,7 +62,7 @@ class StatCard extends StatelessWidget {
           child: Icon(
             icon ?? Icons.analytics,
             color: iconColor ?? AppColors.primary,
-            size: 28,
+            size: 26,
           ),
         ),
         const SizedBox(width: AppSpacing.md),

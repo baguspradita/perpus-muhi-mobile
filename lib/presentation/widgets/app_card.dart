@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_spacing.dart';
 
 class AppCard extends StatelessWidget {
   final Widget child;
@@ -28,7 +30,7 @@ class AppCard extends StatelessWidget {
         elevation: 0,
         shadowColor: effectiveShadow,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.rMd,
           side: BorderSide(color: AppColors.divider),
         ),
         color: AppColors.surface,
@@ -36,9 +38,9 @@ class AppCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.rMd,
           child: Padding(
-            padding: padding ?? const EdgeInsets.all(16),
+            padding: padding ?? const EdgeInsets.all(AppSpacing.lg),
             child: child,
           ),
         ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/routes/route_names.dart';
 import '../../../domain/entities/buku_entity.dart';
 import '../../providers/katalog_provider.dart';
 import '../../widgets/app_search_bar.dart';
@@ -47,7 +49,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
                 tooltip: 'Notifikasi',
-                onPressed: () {},
+                onPressed: () => context.push(RouteNames.notifications),
               ),
               Positioned(
                 right: 8,
@@ -90,7 +92,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
           // Category Chips
           katalogState.isFiltersLoading
               ? _buildCategoryLoadingState()
@@ -128,11 +130,11 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
 
   Widget _buildLoadingState() {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
           const CircularProgressIndicator(
             color: AppColors.outline,
             strokeWidth: 3,
@@ -149,7 +151,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
 
   Widget _buildCategoryLoadingState() {
     return SizedBox(
-      height: 40,
+      height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -159,7 +161,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
           final widths = [72.0, 64.0, 80.0, 76.0];
           return LoadingShimmer(
             width: widths[index],
-            height: 32,
+            height: 30,
             borderRadius: 999,
           );
         },
@@ -170,7 +172,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
   Widget _buildErrorState(String error) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: EmptyState(
           icon: Icons.error_outline,
           title: 'Gagal Memuat Buku',
@@ -188,7 +190,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
     if (state.bukuList.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: EmptyState(
             icon: Icons.menu_book_outlined,
             title: 'Belum Ada Buku',
@@ -213,10 +215,15 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.68,
+        childAspectRatio: 0.7,
         crossAxisSpacing: AppSpacing.md,
         mainAxisSpacing: AppSpacing.md,
       ),

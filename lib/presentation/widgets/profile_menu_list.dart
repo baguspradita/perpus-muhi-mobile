@@ -7,23 +7,25 @@ import '../../core/theme/app_typography.dart';
 class ProfileMenuList extends StatelessWidget {
   final List<ProfileMenuItem> items;
 
-  const ProfileMenuList({
-    super.key,
-    required this.items,
-  });
+  const ProfileMenuList({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
-        borderRadius: AppRadius.rXl,
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowPrimary.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
-        children: items
-            .map((item) => _MenuTile(item: item))
-            .toList(),
+        children: items.map((item) => _MenuTile(item: item)).toList(),
       ),
     );
   }
@@ -59,40 +61,31 @@ class _MenuTile extends StatelessWidget {
 
     return InkWell(
       onTap: item.onTap,
-      borderRadius: item.showDivider
-          ? BorderRadius.zero
-          : AppRadius.rXl,
+      borderRadius: item.showDivider ? BorderRadius.zero : AppRadius.rMd,
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
+          vertical: 10,
         ),
         decoration: item.showDivider
             ? const BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(
-                    color: AppColors.outlineVariant,
-                    width: 1,
-                  ),
+                  bottom: BorderSide(color: AppColors.outlineVariant, width: 1),
                 ),
               )
             : null,
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
                 color: iconColor.withAlpha(26),
                 borderRadius: AppRadius.rMd,
               ),
-              child: Icon(
-                item.icon,
-                color: iconColor,
-                size: 20,
-              ),
+              child: Icon(item.icon, color: iconColor, size: 18),
             ),
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,11 +109,7 @@ class _MenuTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: AppColors.outline,
-              size: 24,
-            ),
+            Icon(Icons.chevron_right, color: AppColors.outline, size: 20),
           ],
         ),
       ),

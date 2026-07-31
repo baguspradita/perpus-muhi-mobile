@@ -42,46 +42,46 @@ class ScaffoldWithNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: child,
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: AppColors.outlineVariant,
-              width: 1,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: AppColors.outlineVariant, width: 1),
             ),
           ),
-        ),
-        child: NavigationBar(
-          selectedIndex: _calculateSelectedIndex(context),
-          onDestinationSelected: (index) => _onItemTapped(context, index),
-          backgroundColor: AppColors.surfaceContainerLowest,
-          indicatorColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          height: AppSpacing.safeArea + 12,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          elevation: 0,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home, color: AppColors.primary),
-              label: 'Beranda',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              selectedIcon: Icon(Icons.menu_book, color: AppColors.primary),
-              label: 'Katalog',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.book_outlined),
-              selectedIcon: Icon(Icons.book, color: AppColors.primary),
-              label: 'Pinjaman',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outlined),
-              selectedIcon: Icon(Icons.person, color: AppColors.primary),
-              label: 'Profil',
-            ),
-          ],
+          child: NavigationBar(
+            selectedIndex: _calculateSelectedIndex(context),
+            onDestinationSelected: (index) => _onItemTapped(context, index),
+            backgroundColor: AppColors.surfaceContainerLowest,
+            indicatorColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            height: 72,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            elevation: 0,
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home, color: AppColors.primary),
+                label: 'Beranda',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.menu_book_outlined),
+                selectedIcon: Icon(Icons.menu_book, color: AppColors.primary),
+                label: 'Katalog',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.book_outlined),
+                selectedIcon: Icon(Icons.book, color: AppColors.primary),
+                label: 'Pinjaman',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outlined),
+                selectedIcon: Icon(Icons.person, color: AppColors.primary),
+                label: 'Profil',
+              ),
+            ],
+          ),
         ),
       ),
     );

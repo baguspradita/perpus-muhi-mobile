@@ -44,7 +44,7 @@ class HomePage extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
                 tooltip: 'Notifikasi',
-                onPressed: () {},
+                onPressed: () => context.push(RouteNames.notifications),
               ),
               Positioned(
                 right: 8,
@@ -63,22 +63,38 @@ class HomePage extends ConsumerWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.sm,
+          AppSpacing.md,
+          AppSpacing.md,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildGreeting(context, user),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
             _buildStatsSection(context, ref),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
             _buildActiveLoansSection(context, ref),
-            const SizedBox(height: AppSpacing.xl),
-            _buildBookSection(context, 'Rekomendasi Untuk Anda', ref.watch(dashboardBukuProvider).rekomendasiBuku),
-            const SizedBox(height: AppSpacing.xl),
-            _buildBookSection(context, 'Buku Baru', ref.watch(dashboardBukuProvider).bukuBaru),
-            const SizedBox(height: AppSpacing.xl),
-            _buildBookSection(context, 'Buku Populer Bulan Ini', ref.watch(dashboardBukuProvider).bukuPopuler),
+            const SizedBox(height: AppSpacing.lg),
+            _buildBookSection(
+              context,
+              'Rekomendasi Untuk Anda',
+              ref.watch(dashboardBukuProvider).rekomendasiBuku,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _buildBookSection(
+              context,
+              'Buku Baru',
+              ref.watch(dashboardBukuProvider).bukuBaru,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _buildBookSection(
+              context,
+              'Buku Populer Bulan Ini',
+              ref.watch(dashboardBukuProvider).bukuPopuler,
+            ),
           ],
         ),
       ),
@@ -94,41 +110,71 @@ class HomePage extends ConsumerWidget {
       _ => 'Selamat malam',
     };
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$greeting, ${user?.nama ?? 'User'}',
-                style: AppTypography.headlineLgMobile,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Perpustakaan Muhi',
-                style: AppTypography.bodySm.copyWith(
-                  color: AppColors.outline,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.rMd,
+        border: Border.all(color: AppColors.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowPrimary.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.menu_book_rounded,
+              color: AppColors.primary,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  greeting,
+                  style: AppTypography.labelMd.copyWith(
+                    color: AppColors.primary,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  user?.nama ?? 'User',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.headlineLgMobile.copyWith(
+                    fontSize: 20,
+                    letterSpacing: -0.3,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Perpustakaan Muhi',
+                  style: AppTypography.bodySm.copyWith(
+                    color: AppColors.outline,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLow,
-            borderRadius: AppRadius.rMd,
-          ),
-          child: IconButton(
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-            icon: const Icon(Icons.menu, color: AppColors.primary),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -181,7 +227,7 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildActiveLoansSection(BuildContext context, WidgetRef ref) {
     final peminjamanState = ref.watch(peminjamanProvider);
-    
+
     // Get only active loans
     final activeLoans = peminjamanState.peminjamanAktif
         .where((loan) => loan.status.toLowerCase() == 'dipinjam')
@@ -205,10 +251,7 @@ class HomePage extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Pinjaman Aktif',
-              style: AppTypography.headlineMd,
-            ),
+            Text('Pinjaman Aktif', style: AppTypography.headlineMd),
             TextButton(
               onPressed: () {
                 context.go(RouteNames.peminjaman);
@@ -230,7 +273,8 @@ class HomePage extends ConsumerWidget {
             scrollDirection: Axis.horizontal,
             itemCount: activeLoans.length,
             separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-            itemBuilder: (context, index) => _buildBookLoanCard(activeLoans[index]),
+            itemBuilder: (context, index) =>
+                _buildBookLoanCard(activeLoans[index]),
           ),
         ),
       ],
@@ -240,7 +284,7 @@ class HomePage extends ConsumerWidget {
   Widget _buildBookLoanCard(PeminjamanEntity loan) {
     final detail = loan.details.firstOrNull;
     final dueDate = loan.tglJatuhTempo;
-    
+
     String formatDate(String dateStr) {
       if (dateStr.isEmpty) return '';
       try {
@@ -255,11 +299,11 @@ class HomePage extends ConsumerWidget {
       width: 160,
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
-        borderRadius: AppRadius.rXl,
+        borderRadius: AppRadius.rMd,
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowPrimary,
-            blurRadius: 8,
+            color: AppColors.shadowPrimary.withValues(alpha: 0.04),
+            blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
@@ -274,15 +318,11 @@ class HomePage extends ConsumerWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryContainer,
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
+                top: Radius.circular(16),
               ),
             ),
             child: const Center(
-              child: Icon(
-                Icons.book,
-                size: 48,
-                color: AppColors.primary,
-              ),
+              child: Icon(Icons.book, size: 48, color: AppColors.primary),
             ),
           ),
           // Info
@@ -335,17 +375,18 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBookSection(BuildContext context, String title, List<BukuEntity> books) {
+  Widget _buildBookSection(
+    BuildContext context,
+    String title,
+    List<BukuEntity> books,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: AppTypography.headlineMd,
-            ),
+            Text(title, style: AppTypography.headlineMd),
             TextButton(
               onPressed: () {
                 context.go(RouteNames.katalog);
@@ -367,7 +408,8 @@ class HomePage extends ConsumerWidget {
             scrollDirection: Axis.horizontal,
             itemCount: books.length,
             separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-            itemBuilder: (context, index) => _buildBookCard(context, books[index]),
+            itemBuilder: (context, index) =>
+                _buildBookCard(context, books[index]),
           ),
         ),
       ],
@@ -393,11 +435,11 @@ class HomePage extends ConsumerWidget {
         width: 140,
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
-          borderRadius: AppRadius.rXl,
+          borderRadius: AppRadius.rMd,
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowPrimary,
-              blurRadius: 8,
+              color: AppColors.shadowPrimary.withValues(alpha: 0.04),
+              blurRadius: 12,
               offset: const Offset(0, 2),
             ),
           ],
@@ -411,15 +453,11 @@ class HomePage extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: coverColor,
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
+                  top: Radius.circular(16),
                 ),
               ),
               child: const Center(
-                child: Icon(
-                  Icons.menu_book,
-                  size: 40,
-                  color: Colors.white70,
-                ),
+                child: Icon(Icons.menu_book, size: 40, color: Colors.white70),
               ),
             ),
             Expanded(

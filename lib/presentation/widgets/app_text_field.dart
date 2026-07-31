@@ -34,25 +34,31 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColors = enabled ? AppColors : AppColors;
-    final effectiveFillColor = enabled ? AppColors.surface : AppColors.surfaceVariant;
+    final effectiveFillColor = enabled
+        ? AppColors.surface
+        : AppColors.surfaceVariant;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (labelText != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
             child: Text(labelText!, style: AppTypography.label),
           ),
         TextFormField(
           controller: controller,
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+            hintStyle: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.md,
+            ),
             filled: true,
             fillColor: effectiveFillColor,
             border: OutlineInputBorder(
@@ -88,8 +94,11 @@ class AppTextField extends StatelessWidget {
         ),
         if (errorText != null)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(errorText!, style: AppTypography.bodySmall.copyWith(color: AppColors.error)),
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: Text(
+              errorText!,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+            ),
           ),
       ],
     );

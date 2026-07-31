@@ -53,35 +53,30 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.lg,
+        vertical: AppSpacing.md,
         horizontal: AppSpacing.md,
       ),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
-        borderRadius: AppRadius.rXl,
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowPrimary,
-            blurRadius: 4,
+            color: AppColors.shadowPrimary.withValues(alpha: 0.04),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          Icon(icon, color: AppColors.primary, size: 24),
+          Icon(icon, color: AppColors.primary, size: 22),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            value,
-            style: AppTypography.statNumber.copyWith(fontSize: 24),
-          ),
+          Text(value, style: AppTypography.statNumber.copyWith(fontSize: 24)),
           const SizedBox(height: 4),
           Text(
             label,
-            style: AppTypography.bodySm.copyWith(
-              color: AppColors.outline,
-            ),
+            style: AppTypography.bodySm.copyWith(color: AppColors.outline),
           ),
         ],
       ),

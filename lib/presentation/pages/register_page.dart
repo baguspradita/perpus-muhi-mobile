@@ -60,15 +60,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 30),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 30), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+          ),
+        );
     _animationController.forward();
     _loadJurusan();
   }
@@ -111,20 +109,24 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
   Future<void> _register() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    await ref.read(authNotifierProvider.notifier).register(
-      nama: _namaController.text.trim(),
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-      passwordConfirmation: _passwordConfirmController.text,
-      noTelp: _noTelpController.text.trim(),
-      alamat: _alamatController.text.trim(),
-      role: _selectedRole,
-      nisn: _selectedRole == 'siswa' ? _nisnController.text.trim() : null,
-      jurusanId: _selectedRole == 'siswa' ? _selectedJurusanId?.toString() : null,
-      kelas: _selectedRole == 'siswa' ? _selectedKelas : null,
-      nip: _selectedRole == 'guru' ? _nipController.text.trim() : null,
-      mapel: _selectedRole == 'guru' ? _mapelController.text.trim() : null,
-    );
+    await ref
+        .read(authNotifierProvider.notifier)
+        .register(
+          nama: _namaController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          passwordConfirmation: _passwordConfirmController.text,
+          noTelp: _noTelpController.text.trim(),
+          alamat: _alamatController.text.trim(),
+          role: _selectedRole,
+          nisn: _selectedRole == 'siswa' ? _nisnController.text.trim() : null,
+          jurusanId: _selectedRole == 'siswa'
+              ? _selectedJurusanId?.toString()
+              : null,
+          kelas: _selectedRole == 'siswa' ? _selectedKelas : null,
+          nip: _selectedRole == 'guru' ? _nipController.text.trim() : null,
+          mapel: _selectedRole == 'guru' ? _mapelController.text.trim() : null,
+        );
   }
 
   @override
@@ -149,7 +151,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.xxl,
+                    vertical: AppSpacing.xl,
                   ),
                   child: FadeTransition(
                     opacity: _fadeAnimation,
@@ -203,34 +205,34 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
     return Column(
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: 76,
+          height: 76,
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: AppRadius.rXl,
+            borderRadius: AppRadius.rMd,
             child: Image.asset(
               'assets/images/logo-muhi.png',
               fit: BoxFit.cover,
-              width: 80,
-              height: 80,
+              width: 76,
+              height: 76,
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
         Text(
           'Selamat Datang',
           style: AppTypography.heading1.copyWith(
-            fontSize: 28,
+            fontSize: 26,
             fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
+            letterSpacing: -0.3,
             color: AppColors.textPrimary,
           ),
           textAlign: TextAlign.center,
@@ -261,7 +263,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: AppColors.surfaceVariant,
-            borderRadius: AppRadius.rLg,
+            borderRadius: AppRadius.rMd,
           ),
           child: Row(
             children: [
@@ -300,7 +302,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           prefixIcon: const Icon(Icons.person_rounded, size: 20),
           validator: (v) => Validators.required(v, fieldName: 'Nama'),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         AppTextField(
           labelText: 'Email',
           hintText: 'contoh@email.com',
@@ -309,7 +311,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           prefixIcon: const Icon(Icons.email_rounded, size: 20),
           validator: Validators.email,
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         AppTextField(
           labelText: 'Kata Sandi',
           hintText: 'Minimal 8 karakter',
@@ -323,11 +325,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
                   : Icons.visibility_off_rounded,
               size: 20,
             ),
-            onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
+            onPressed: () =>
+                setState(() => _isPasswordHidden = !_isPasswordHidden),
           ),
           validator: Validators.password,
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         AppTextField(
           labelText: 'Konfirmasi Kata Sandi',
           hintText: 'Ulangi kata sandi',
@@ -341,11 +344,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
                   : Icons.visibility_off_rounded,
               size: 20,
             ),
-            onPressed: () => setState(() => _isPasswordConfirmHidden = !_isPasswordConfirmHidden),
+            onPressed: () => setState(
+              () => _isPasswordConfirmHidden = !_isPasswordConfirmHidden,
+            ),
           ),
-          validator: (v) => Validators.confirmPassword(v, _passwordController.text),
+          validator: (v) =>
+              Validators.confirmPassword(v, _passwordController.text),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         AppTextField(
           labelText: 'No. Telepon',
           hintText: '0812xxxxxxx',
@@ -354,7 +360,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           prefixIcon: const Icon(Icons.phone_rounded, size: 20),
           validator: Validators.phone,
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         AppTextField(
           labelText: 'Alamat',
           hintText: 'Masukkan alamat lengkap',
@@ -364,7 +370,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           validator: (v) => Validators.required(v, fieldName: 'Alamat'),
         ),
         if (_selectedRole == 'siswa') ...[
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           AppTextField(
             labelText: 'NISN',
             hintText: 'Masukkan NISN',
@@ -373,7 +379,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
             prefixIcon: const Icon(Icons.badge_rounded, size: 20),
             validator: (v) => Validators.numeric(v, fieldName: 'NISN'),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           if (_isLoadingJurusan)
             const Center(
               child: Padding(
@@ -401,21 +407,28 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: AppRadius.rLg,
-                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 2,
+                  ),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: AppRadius.rLg,
                   borderSide: const BorderSide(color: AppColors.error),
                 ),
               ),
-              items: _jurusanList.map((j) => DropdownMenuItem<int>(
-                value: j['id'] as int?,
-                child: Text(j['nama_jurusan'] as String? ?? ''),
-              )).toList(),
+              items: _jurusanList
+                  .map(
+                    (j) => DropdownMenuItem<int>(
+                      value: j['id'] as int?,
+                      child: Text(j['nama_jurusan'] as String? ?? ''),
+                    ),
+                  )
+                  .toList(),
               onChanged: (v) => setState(() => _selectedJurusanId = v),
               validator: (v) => v == null ? 'Silakan pilih jurusan' : null,
             ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<String>(
             value: _selectedKelas,
             decoration: InputDecoration(
@@ -428,7 +441,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: AppRadius.rLg,
-                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: AppRadius.rLg,
@@ -445,7 +461,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           ),
         ],
         if (_selectedRole == 'guru') ...[
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           AppTextField(
             labelText: 'NIP',
             hintText: 'Masukkan NIP',
@@ -454,7 +470,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
             prefixIcon: const Icon(Icons.badge_rounded, size: 20),
             validator: (v) => Validators.numeric(v, fieldName: 'NIP'),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           AppTextField(
             labelText: 'Mata Pelajaran',
             hintText: 'Masukkan mata pelajaran (opsional)',
@@ -472,7 +488,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: AppRadius.rLg,
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
       ),
       child: Row(
@@ -483,7 +499,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
               color: AppColors.error.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+            child: const Icon(
+              Icons.error_outline_rounded,
+              color: AppColors.error,
+              size: 18,
+            ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -503,12 +523,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
       children: [
         Text(
           'Sudah punya akun? ',
-          style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+          style: AppTypography.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
         TextButton(
           onPressed: () => context.go(RouteNames.login),
           style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
@@ -544,7 +569,7 @@ class _RoleChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: AppRadius.rMd,

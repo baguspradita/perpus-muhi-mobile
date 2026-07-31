@@ -36,15 +36,13 @@ class _SplashPageState extends ConsumerState<SplashPage>
       ),
     );
 
-    _textSlide = Tween<Offset>(
-      begin: const Offset(0, 30),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
-      ),
-    );
+    _textSlide = Tween<Offset>(begin: const Offset(0, 30), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
+          ),
+        );
 
     _dotsFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -87,56 +85,63 @@ class _SplashPageState extends ConsumerState<SplashPage>
       backgroundColor: AppColors.primary,
       body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FadeTransition(
-                opacity: _logoFade,
-                child: Image.asset(
-                  'assets/images/logo-muhi.png',
-                  height: 100,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(height: 20),
-              SlideTransition(
-                position: _textSlide,
-                child: FadeTransition(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FadeTransition(
                   opacity: _logoFade,
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Perpustakaan Muhi',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Sistem Manajemen Buku',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white.withAlpha(204),
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ],
+                  child: Image.asset(
+                    'assets/images/logo-muhi.png',
+                    height: 92,
+                    fit: BoxFit.contain,
                   ),
                 ),
-              ),
-              const SizedBox(height: 48),
-              FadeTransition(
-                opacity: _dotsFade,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(3, (i) => _LoadingDot(i: i)),
+                const SizedBox(height: 18),
+                SlideTransition(
+                  position: _textSlide,
+                  child: FadeTransition(
+                    opacity: _logoFade,
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Perpustakaan Muhi',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 0.2,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Sistem Manajemen Buku',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white.withAlpha(204),
+                            letterSpacing: 1.2,
+                            height: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 42),
+                FadeTransition(
+                  opacity: _dotsFade,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(3, (i) => _LoadingDot(i: i)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -164,9 +169,10 @@ class _LoadingDotState extends State<_LoadingDot>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _anim = Tween<double>(
+      begin: 0.4,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     Future.delayed(Duration(milliseconds: 200 * widget.i), () {
       if (mounted) _controller.repeat(reverse: true);
@@ -186,12 +192,12 @@ class _LoadingDotState extends State<_LoadingDot>
       builder: (context, child) {
         final opacity = _anim.value;
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 400),
             curve: Curves.easeInOut,
-            width: 8,
-            height: 8,
+            width: 7,
+            height: 7,
             decoration: BoxDecoration(
               color: Colors.white.withAlpha((opacity * 255).round()),
               shape: BoxShape.circle,
