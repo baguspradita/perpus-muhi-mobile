@@ -21,26 +21,19 @@ class KatalogScreen extends ConsumerStatefulWidget {
 }
 
 class _KatalogScreenState extends ConsumerState<KatalogScreen> {
-  final _searchController = TextEditingController();
-  int _selectedCategoryIndex = 0;
+  String _currentSearch = '';
+  int? _selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(katalogProvider.notifier).loadData();
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final katalogState = ref.watch(katalogProvider);
+    final categories = _buildCategories(katalogState);
+    final selectedIndex = _resolveSelectedIndex(categories);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -85,28 +78,48 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
             child: AppSearchBar(
               hintText: 'Cari buku, penulis, atau ISBN...',
               onChanged: (value) {
-                ref.read(katalogProvider.notifier).loadData(search: value);
+                setState(() => _currentSearch = value);
+                ref
+                    .read(katalogProvider.notifier)
+                    .loadData(search: value, kategoriId: _selectedCategoryId);
               },
-              prefixIcon: const Icon(Icons.search, color: AppColors.outline, size: 20),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: AppColors.outline,
+                size: 20,
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           // Category Chips
-          CategoryChipsScroll(
-            categories: CategoryItem.staticCategories(),
-            selectedIndex: _selectedCategoryIndex,
-            onCategorySelected: (index) {
-              setState(() => _selectedCategoryIndex = index);
-            },
-          ),
+          katalogState.isFiltersLoading
+              ? _buildCategoryLoadingState()
+              : CategoryChipsScroll(
+                  categories: categories,
+                  selectedIndex: selectedIndex,
+                  onCategorySelected: (index) {
+                    final selectedCategoryId = index == 0
+                        ? null
+                        : categories[index].id;
+                    setState(() => _selectedCategoryId = selectedCategoryId);
+                    ref
+                        .read(katalogProvider.notifier)
+                        .loadData(
+                          search: _currentSearch.isEmpty
+                              ? null
+                              : _currentSearch,
+                          kategoriId: selectedCategoryId,
+                        );
+                  },
+                ),
           const SizedBox(height: AppSpacing.md),
           // Book Grid
           Expanded(
             child: katalogState.isLoading
                 ? _buildLoadingState()
                 : katalogState.errorMessage.isNotEmpty
-                    ? _buildErrorState(katalogState.errorMessage)
-                    : _buildBookGrid(katalogState),
+                ? _buildErrorState(katalogState.errorMessage)
+                : _buildBookGrid(katalogState),
           ),
         ],
       ),
@@ -127,11 +140,29 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
           const SizedBox(height: AppSpacing.md),
           Text(
             'Memuat buku lainnya...',
-            style: AppTypography.bodySm.copyWith(
-              color: AppColors.outline,
-            ),
+            style: AppTypography.bodySm.copyWith(color: AppColors.outline),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryLoadingState() {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        itemCount: 4,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final widths = [72.0, 64.0, 80.0, 76.0];
+          return LoadingShimmer(
+            width: widths[index],
+            height: 32,
+            borderRadius: 999,
+          );
+        },
       ),
     );
   }
@@ -164,20 +195,22 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
             subtitle: state.searchQuery.isNotEmpty
                 ? 'Tidak ada buku yang cocok dengan "${state.searchQuery}"'
                 : 'Data buku akan muncul di sini.',
-            actionLabel: state.searchQuery.isNotEmpty ? 'Hapus Filter' : 'Muat Ulang',
+            actionLabel: state.searchQuery.isNotEmpty
+                ? 'Hapus Filter'
+                : 'Muat Ulang',
             onAction: () {
-              ref.read(katalogProvider.notifier).loadData(
-                    search: null,
-                  );
+              ref
+                  .read(katalogProvider.notifier)
+                  .loadData(search: null, kategoriId: null);
+              setState(() {
+                _currentSearch = '';
+                _selectedCategoryId = null;
+              });
             },
           ),
         ),
       );
     }
-
-    final bukuBuku = _searchController.text.isNotEmpty
-        ? state.bukuList
-        : state.bukuList;
 
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -187,9 +220,9 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
         crossAxisSpacing: AppSpacing.md,
         mainAxisSpacing: AppSpacing.md,
       ),
-      itemCount: bukuBuku.length,
+      itemCount: state.bukuList.length,
       itemBuilder: (context, index) {
-        final buku = bukuBuku[index];
+        final buku = state.bukuList[index];
         return BookCard(
           title: buku.judul,
           author: buku.penulis,
@@ -200,6 +233,26 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
         );
       },
     );
+  }
+
+  List<CategoryItem> _buildCategories(KatalogState state) {
+    final apiCategories = state.filters['kategori'];
+    final dynamicCategories = apiCategories is List
+        ? CategoryItem.fromApiData(apiCategories)
+        : const <CategoryItem>[];
+
+    return [const CategoryItem(label: 'Semua'), ...dynamicCategories];
+  }
+
+  int _resolveSelectedIndex(List<CategoryItem> categories) {
+    if (_selectedCategoryId == null) {
+      return 0;
+    }
+
+    final index = categories.indexWhere(
+      (category) => category.id == _selectedCategoryId,
+    );
+    return index >= 0 ? index : 0;
   }
 
   Color _getCoverColor(int id) {

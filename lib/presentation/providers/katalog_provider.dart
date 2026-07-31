@@ -6,6 +6,7 @@ import '../../domain/usecases/buku_usecases.dart';
 
 class KatalogState {
   final bool isLoading;
+  final bool isFiltersLoading;
   final List<BukuEntity> bukuList;
   final Map<String, dynamic> filters;
   final String errorMessage;
@@ -13,6 +14,7 @@ class KatalogState {
 
   const KatalogState({
     this.isLoading = false,
+    this.isFiltersLoading = false,
     this.bukuList = const [],
     this.filters = const {},
     this.errorMessage = '',
@@ -21,6 +23,7 @@ class KatalogState {
 
   KatalogState copyWith({
     bool? isLoading,
+    bool? isFiltersLoading,
     List<BukuEntity>? bukuList,
     Map<String, dynamic>? filters,
     String? errorMessage,
@@ -28,6 +31,7 @@ class KatalogState {
   }) {
     return KatalogState(
       isLoading: isLoading ?? this.isLoading,
+      isFiltersLoading: isFiltersLoading ?? this.isFiltersLoading,
       bukuList: bukuList ?? this.bukuList,
       filters: filters ?? this.filters,
       errorMessage: errorMessage ?? this.errorMessage,
@@ -43,26 +47,28 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
   KatalogNotifier({
     required GetAllBukuUseCase getAllBukuUseCase,
     required GetFiltersUseCase getFiltersUseCase,
-  })  : _getAllBukuUseCase = getAllBukuUseCase,
-        _getFiltersUseCase = getFiltersUseCase,
-        super(const KatalogState());
+  }) : _getAllBukuUseCase = getAllBukuUseCase,
+       _getFiltersUseCase = getFiltersUseCase,
+       super(const KatalogState());
 
-  Future<void> loadData({String? search}) async {
+  Future<void> loadData({String? search, int? kategoriId}) async {
     // Load books
-    state = state.copyWith(isLoading: true, errorMessage: '', searchQuery: search ?? '');
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: '',
+      searchQuery: search ?? '',
+    );
 
-    final booksResult = await _getAllBukuUseCase(search: search);
+    final booksResult = await _getAllBukuUseCase(
+      search: search,
+      kategoriId: kategoriId,
+    );
 
     booksResult.fold(
       (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
       },
       (list) {
-        // Load filters after books
-        _loadFilters();
         state = state.copyWith(
           isLoading: false,
           bukuList: list,
@@ -72,19 +78,18 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
     );
   }
 
-  Future<void> _loadFilters() async {
+  Future<void> loadFilters() async {
+    state = state.copyWith(isFiltersLoading: true);
+
     final result = await _getFiltersUseCase.call();
 
     result.fold(
       (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isFiltersLoading: false);
       },
       (filters) {
         state = state.copyWith(
-          isLoading: false,
+          isFiltersLoading: false,
           filters: filters,
           errorMessage: '',
         );
@@ -93,9 +98,14 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
   }
 }
 
-final katalogProvider = StateNotifierProvider<KatalogNotifier, KatalogState>((ref) {
-  return KatalogNotifier(
+final katalogProvider = StateNotifierProvider<KatalogNotifier, KatalogState>((
+  ref,
+) {
+  final notifier = KatalogNotifier(
     getAllBukuUseCase: sl<GetAllBukuUseCase>(),
     getFiltersUseCase: sl<GetFiltersUseCase>(),
-  )..loadData();
+  );
+  notifier.loadFilters();
+  notifier.loadData();
+  return notifier;
 });
