@@ -132,7 +132,9 @@ class AppTheme {
     );
 
     return baseTheme.copyWith(
-      textTheme: GoogleFonts.interTextTheme(baseTheme.textTheme),
+      textTheme: GoogleFonts.interTextTheme(baseTheme.textTheme).apply(
+        fontFamilyFallback: ['MaterialIcons'],
+      ),
     );
   }
 }

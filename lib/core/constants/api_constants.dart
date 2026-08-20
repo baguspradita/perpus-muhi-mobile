@@ -30,6 +30,8 @@ abstract class ApiConstants {
   static const String riwayatPeminjaman = '/riwayat-peminjaman';
   static const String riwayatPeminjamanAll = '/riwayat-peminjaman-all';
 
+  static const String notifications = '/notifications';
+
   static const String dashboard = '/dashboard';
   static const String dashboardRekomendasi = '/dashboard/rekomendasi';
   static const String dashboardBukuBaru = '/dashboard/buku-baru';

@@ -5,18 +5,22 @@ import 'package:logger/logger.dart';
 
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/datasources/buku_remote_datasource.dart';
+import '../../data/datasources/notification_remote_datasource.dart';
 import '../../data/datasources/peminjaman_remote_datasource.dart';
 import '../../data/datasources/profile_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/repositories/buku_repository_impl.dart';
+import '../../data/repositories/notification_repository_impl.dart';
 import '../../data/repositories/peminjaman_repository_impl.dart';
 import '../../data/repositories/profile_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/buku_repository.dart';
+import '../../domain/repositories/notification_repository.dart';
 import '../../domain/repositories/peminjaman_repository.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../domain/usecases/auth_usecases.dart';
 import '../../domain/usecases/buku_usecases.dart';
+import '../../domain/usecases/notification_usecases.dart';
 import '../../domain/usecases/peminjaman_usecases.dart';
 import '../../domain/usecases/profile_usecases.dart';
 import '../constants/api_constants.dart';
@@ -61,6 +65,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSource(sl<ApiClient>()),
   );
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSource(sl<ApiClient>()),
+  );
 
   // ═══════════════════════════════════════════
   // Repositories
@@ -79,6 +86,12 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(remoteDataSource: sl<ProfileRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(
+          remoteDataSource: sl<NotificationRemoteDataSource>(),
+          localStorage: sl<LocalStorageService>(),
+        ),
   );
 
   // ═══════════════════════════════════════════
@@ -141,6 +154,15 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<UpdatePasswordUseCase>(
     () => UpdatePasswordUseCase(sl<ProfileRepository>()),
   );
+  sl.registerLazySingleton<GetNotificationsUseCase>(
+    () => GetNotificationsUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<MarkNotificationAsReadUseCase>(
+    () => MarkNotificationAsReadUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<MarkAllNotificationsAsReadUseCase>(
+    () => MarkAllNotificationsAsReadUseCase(sl<NotificationRepository>()),
+  );
 }
 
 // ═══════════════════════════════════════════════════════
@@ -190,10 +212,16 @@ class _AuthInterceptor extends Interceptor {
       _logger.w('Token expired / unauthorized — token removed');
     }
 
-    _logger.e(
-      'API Error [${dioException.response?.statusCode}]',
-      error: dioException.message,
-    );
+    // Skip logging 404 for notifications endpoint (expected during development)
+    final isNotifications404 = dioException.response?.statusCode == 404 &&
+        dioException.requestOptions.path.contains('notifications');
+
+    if (!isNotifications404) {
+      _logger.e(
+        'API Error [${dioException.response?.statusCode}]',
+        error: dioException.message,
+      );
+    }
 
     handler.next(dioException);
   }
@@ -210,11 +238,17 @@ class _AuthInterceptor extends Interceptor {
 class _LoggingInterceptor extends Interceptor {
   @override
   void onError(DioException dioException, ErrorInterceptorHandler handler) {
-    _logger.e(
-      'HTTP ${dioException.response?.statusCode} ${dioException.requestOptions.method.toUpperCase()} '
-      '${dioException.requestOptions.uri}',
-      error: dioException.message,
-    );
+    // Skip logging 404 for notifications endpoint (expected during development)
+    final isNotifications404 = dioException.response?.statusCode == 404 &&
+        dioException.requestOptions.path.contains('notifications');
+
+    if (!isNotifications404) {
+      _logger.e(
+        'HTTP ${dioException.response?.statusCode} ${dioException.requestOptions.method.toUpperCase()} '
+        '${dioException.requestOptions.uri}',
+        error: dioException.message,
+      );
+    }
     handler.next(dioException);
   }
 }

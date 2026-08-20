@@ -169,16 +169,6 @@ class AppDrawer extends ConsumerWidget {
                   },
                 ),
               ),
-              Expanded(
-                child: _HeaderAction(
-                  icon: Icons.favorite_outline,
-                  label: 'Favorit',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go(RouteNames.katalog);
-                  },
-                ),
-              ),
             ],
           ),
         ],
