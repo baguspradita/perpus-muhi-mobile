@@ -1,7 +1,8 @@
 ﻿import 'package:flutter/material.dart';
-import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_radius.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import 'app_badge.dart';
 
@@ -15,6 +16,7 @@ class BookCard extends StatelessWidget {
   final String? dueDate;
   final VoidCallback? onTap;
   final bool isGridMode;
+  final int? heroTag;
 
   const BookCard({
     super.key,
@@ -27,6 +29,7 @@ class BookCard extends StatelessWidget {
     this.dueDate,
     this.onTap,
     this.isGridMode = false,
+    this.heroTag,
   });
 
   @override
@@ -59,14 +62,9 @@ class BookCard extends StatelessWidget {
             Expanded(
               child: Stack(
                 children: [
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: coverColor,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16),
-                      ),
-                    ),
+                  Hero(
+                    tag: 'book_cover_$heroTag',
+                    child: _buildCoverImage(),
                   ),
                   // Status badge top-right
                   Positioned(
@@ -105,6 +103,39 @@ class BookCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCoverImage() {
+    if (coverUrl != null && coverUrl!.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: coverUrl!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        placeholder: (context, url) => _buildCoverPlaceholder(),
+        errorWidget: (context, url, error) => _buildCoverPlaceholder(),
+      );
+    }
+    return _buildCoverPlaceholder();
+  }
+
+  Widget _buildCoverPlaceholder() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: coverColor,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(16),
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.menu_book_rounded,
+          size: 48,
+          color: Colors.white.withValues(alpha: 0.25),
         ),
       ),
     );

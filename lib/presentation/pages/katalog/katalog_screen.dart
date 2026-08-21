@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,10 +27,27 @@ class KatalogScreen extends ConsumerStatefulWidget {
 class _KatalogScreenState extends ConsumerState<KatalogScreen> {
   String _currentSearch = '';
   int? _selectedCategoryId;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() => _currentSearch = value);
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      ref
+          .read(katalogProvider.notifier)
+          .loadData(search: value.isEmpty ? null : value, kategoriId: _selectedCategoryId);
+    });
   }
 
   @override
@@ -79,12 +98,15 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
             ),
             child: AppSearchBar(
               hintText: 'Cari buku, penulis, atau ISBN...',
-              onChanged: (value) {
-                setState(() => _currentSearch = value);
+              onChanged: _onSearchChanged,
+              onClear: () {
+                _debounceTimer?.cancel();
+                setState(() => _currentSearch = '');
                 ref
                     .read(katalogProvider.notifier)
-                    .loadData(search: value, kategoriId: _selectedCategoryId);
+                    .loadData(search: null, kategoriId: _selectedCategoryId);
               },
+              isLoading: katalogState.isLoading,
               prefixIcon: const Icon(
                 Icons.search,
                 color: AppColors.outline,
@@ -233,10 +255,15 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
         return BookCard(
           title: buku.judul,
           author: buku.penulis,
+          coverUrl: buku.coverUrl,
           coverColor: _getCoverColor(buku.id),
           isAvailable: (buku.stokTersedia ?? 0) > 0,
-          onTap: () {},
+          onTap: () => context.push(
+            RouteNames.bookDetail,
+            extra: buku,
+          ),
           isGridMode: true,
+          heroTag: buku.id,
         );
       },
     );

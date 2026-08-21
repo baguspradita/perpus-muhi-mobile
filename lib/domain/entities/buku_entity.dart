@@ -18,6 +18,9 @@ class BukuEntity extends Equatable {
   final int? subjekId;
   final String? namaLokasi;
   final int? lokasiId;
+  final String? coverUrl;
+  final String? deskripsi;
+  final double? rating;
 
   const BukuEntity({
     required this.id,
@@ -37,6 +40,9 @@ class BukuEntity extends Equatable {
     this.subjekId,
     this.namaLokasi,
     this.lokasiId,
+    this.coverUrl,
+    this.deskripsi,
+    this.rating,
   });
 
   static int _parseInt(dynamic value) {
@@ -88,17 +94,22 @@ class BukuEntity extends Equatable {
       totalSalinan: _parseIntNullable(json['total_salinan']),
       stokTersedia: _parseIntNullable(json['stok_tersedia']),
       hurufJudulAwal: json['huruf_judul_awal'] as String?,
-      nomorSalinan: json['nomor_salinan'] as String?,
+      nomorSalinan: (json['nomor_salinan'] ?? json['nomorSalinan'] ?? json['nomor'] ?? json['copy_number'])?.toString(),
       status: json['status'] as String? ?? 'aktif',
-      namaKategori: _extractString(kategori),
+      namaKategori: _extractString(kategori) ??
+          json['nama_kategori'] as String? ??
+          json['kategori'] as String?,
       kategoriId: _extractId(kategori),
       namaSubjek: _extractString(subjek),
       subjekId: _extractId(subjek),
       namaLokasi: _extractString(lokasi),
       lokasiId: _extractId(lokasi),
+      coverUrl: json['cover_url'] as String? ?? json['gambar'] as String? ?? json['cover'] as String?,
+      deskripsi: json['deskripsi'] as String? ?? json['sinopsis'] as String? ?? json['description'] as String?,
+      rating: (json['rating'] as num?)?.toDouble() ?? (json['average_rating'] as num?)?.toDouble(),
     );
   }
 
   @override
-  List<Object?> get props => [id, judul, penulis, penerbit, tahunTerbit, jumlah, status];
+  List<Object?> get props => [id, judul, penulis, penerbit, tahunTerbit, jumlah, status, coverUrl, deskripsi, rating];
 }

@@ -6,6 +6,7 @@ import '../../presentation/pages/login_page.dart';
 import '../../presentation/pages/register_page.dart';
 import '../../presentation/pages/splash_page.dart';
 import '../../presentation/pages/katalog/katalog_screen.dart';
+import '../../presentation/pages/katalog/book_detail_screen.dart';
 import '../../presentation/pages/peminjaman/peminjaman_list_screen.dart';
 import '../../presentation/pages/peminjaman/riwayat_screen.dart';
 import '../../presentation/pages/profile/profile_screen.dart';
@@ -16,6 +17,7 @@ import '../../presentation/pages/about_screen.dart';
 import '../../presentation/pages/faq_screen.dart';
 import '../../presentation/pages/identification_screen.dart';
 import '../../presentation/widgets/scaffold_with_nav_bar.dart';
+import '../../domain/entities/buku_entity.dart';
 import '../routes/route_names.dart';
 
 final router = GoRouter(
@@ -64,10 +66,22 @@ final router = GoRouter(
           path: RouteNames.home,
           builder: (context, state) => const HomePage(),
         ),
-        GoRoute(
-          path: RouteNames.katalog,
-          builder: (context, state) => const KatalogScreen(),
-        ),
+GoRoute(
+      path: RouteNames.katalog,
+      builder: (context, state) => const KatalogScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.bookDetail,
+      builder: (context, state) {
+        final bookId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        // We need to fetch the book data first, but for now we'll use extra
+        final book = state.extra as BukuEntity?;
+        if (book == null) {
+          return const Scaffold(body: Center(child: Text('Buku tidak ditemukan')));
+        }
+        return BookDetailScreen(book: book);
+      },
+    ),
         GoRoute(
           path: RouteNames.peminjaman,
           builder: (context, state) => const PeminjamanScreen(),

@@ -179,11 +179,36 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
           notification: notification,
           onMarkAsRead: () => notifier.markAsRead(notification.id),
           onTap: notification.actionUrl != null
-              ? () => context.push(notification.actionUrl!)
+              ? () => _handleNotificationTap(notification.actionUrl!)
               : null,
         );
       },
     );
+  }
+
+  void _handleNotificationTap(String actionUrl) {
+    try {
+      final segments = actionUrl.split('/').where((s) => s.isNotEmpty).toList();
+      if (segments.isEmpty) {
+        context.push(RouteNames.home);
+        return;
+      }
+      final basePath = '/${segments.first}';
+      const validRoutes = {
+        RouteNames.home,
+        RouteNames.katalog,
+        RouteNames.peminjaman,
+        RouteNames.profile,
+        RouteNames.about,
+        RouteNames.faq,
+      };
+      final target = validRoutes.contains(basePath) ? basePath : RouteNames.home;
+      context.push(target);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal membuka halaman: $e')),
+      );
+    }
   }
 }
 

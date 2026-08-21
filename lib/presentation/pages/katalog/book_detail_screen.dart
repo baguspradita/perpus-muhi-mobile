@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -9,187 +10,377 @@ import '../../../domain/entities/buku_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/app_button.dart';
 
-class BookDetailScreen extends ConsumerWidget {
+class BookDetailScreen extends ConsumerStatefulWidget {
   final BukuEntity book;
 
   const BookDetailScreen({super.key, required this.book});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BookDetailScreen> createState() => _BookDetailScreenState();
+}
+
+class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
+  bool _isDescriptionExpanded = false;
+  static const int _descriptionMaxLines = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    final isAvailable = (widget.book.stokTersedia ?? 0) > 0 && widget.book.status == 'aktif';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
+          // Hero Cover AppBar
           SliverAppBar(
-            expandedHeight: 260,
+            expandedHeight: 220,
             pinned: true,
+            stretch: true,
             backgroundColor: AppColors.primary,
+            surfaceTintColor: AppColors.surfaceContainerLowest,
+            leading: _BackButton(),
             flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.primary,
-                          AppColors.primary.withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-                  Center(
-                    child: Hero(
-                      tag: 'book_cover_${book.id}',
-                      child: Container(
-                        width: 160,
-                        height: 210,
-                        margin: const EdgeInsets.only(top: 36),
-                        decoration: BoxDecoration(
-                          color: _getCoverColor(book.id),
-                          borderRadius: AppRadius.rMd,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.16),
-                              blurRadius: 18,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.menu_book,
-                            size: 56,
-                            color: Colors.white.withOpacity(0.3),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              stretchModes: const [StretchMode.fadeTitle, StretchMode.zoomBackground],
+              background: _buildHeroCover(),
             ),
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-            ),
-            title: const Text('Detail Buku', style: TextStyle(color: Colors.white)),
           ),
+
+          // Content
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    book.judul,
-                    style: AppTypography.heading2.copyWith(fontSize: 20),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    book.penulis,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  // Title & Meta
+                  _buildTitleSection(),
                   const SizedBox(height: AppSpacing.lg),
-                  Text('Detail', style: AppTypography.heading3),
-                  const SizedBox(height: AppSpacing.sm),
-                  _buildDetailRow('Nomor Salinan', book.nomorSalinan ?? '-'),
-                  _buildDetailRow('Penerbit', book.penerbit),
-                  _buildDetailRow('Tahun Terbit', book.tahunTerbit.toString()),
-                  _buildDetailRow('Kategori', book.namaKategori ?? '-'),
-                  _buildDetailRow('Subjek', book.namaSubjek ?? '-'),
-                  _buildDetailRow('Lokasi', book.namaLokasi ?? '-'),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildStatItem(
-                        Icons.library_books,
-                        book.totalSalinan?.toString() ?? book.jumlah.toString(),
-                        'Total Salinan',
-                      ),
-                      _buildStatItem(
-                        Icons.check_circle,
-                        book.stokTersedia?.toString() ?? book.jumlah.toString(),
-                        'Tersedia',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
+
+                  // Description
+                  if (widget.book.deskripsi != null && widget.book.deskripsi!.isNotEmpty)
+                    _buildDescriptionSection()
+                  else
+                    const SizedBox.shrink(),
+
+                  // Detail Card
+                  _buildDetailCard(),
+
+                  const SizedBox(height: AppSpacing.xl + AppSpacing.md),
                 ],
               ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 12,
-              offset: const Offset(0, -1),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: AppButton(
-            label: 'Pinjam',
-            type: AppButtonType.primary,
-            isExpanded: true,
-            icon: Icons.book_online,
-            onPressed: book.status == 'aktif'
-                ? () => _showBorrowDialog(context, ref)
-                : null,
-          ),
-        ),
-      ),
+
+      // Sticky Action Bar
+      bottomNavigationBar: isAvailable ? _buildActionBar() : _buildUnavailableBar(),
     );
   }
 
-  Widget _buildStatItem(IconData icon, String value, String label) {
-    return Column(
+  Widget _buildHeroCover() {
+    final coverUrl = widget.book.coverUrl;
+    final heroTag = 'book_cover_${widget.book.id}';
+
+    return Stack(
+      fit: StackFit.expand,
       children: [
+        // Background color/shimmer
         Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
-            shape: BoxShape.circle,
+            color: _getCoverColor(widget.book.id).withOpacity(0.15),
           ),
-          child: Icon(icon, color: AppColors.primary, size: 24),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          value,
-          style: AppTypography.heading3.copyWith(fontSize: 16),
-        ),
-        Text(
-          label,
-          style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+
+        // Cover Image
+        if (coverUrl != null && coverUrl.isNotEmpty)
+          Hero(
+            tag: heroTag,
+            child: CachedNetworkImage(
+              imageUrl: coverUrl,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              placeholder: (context, url) => _buildCoverPlaceholder(),
+              errorWidget: (context, url, error) => _buildCoverPlaceholder(),
+            ),
+          )
+        else
+          _buildCoverPlaceholder(),
+
+        // Gradient overlay at bottom for title readability when stretched
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  AppColors.primary.withOpacity(0.85),
+                  AppColors.primary.withOpacity(0),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+  Widget _buildCoverPlaceholder() {
+    return Center(
+      child: Container(
+        width: 140,
+        height: 190,
+        decoration: BoxDecoration(
+          color: _getCoverColor(widget.book.id),
+          borderRadius: AppRadius.rMd,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Icon(
+          Icons.menu_book_rounded,
+          size: 64,
+          color: Colors.white.withOpacity(0.25),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.book.judul,
+          style: AppTypography.headlineLgMobile.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.onSurface,
+            height: 1.2,
           ),
-          Text(value, style: AppTypography.bodyMedium),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.xs,
+          children: [
+            _MetaChip(
+              icon: Icons.person_outline,
+              label: widget.book.penulis,
+              onTap: () => _filterByAuthor(widget.book.penulis),
+            ),
+            if (widget.book.namaKategori != null)
+              _MetaChip(
+                icon: Icons.category_outlined,
+                label: widget.book.namaKategori!,
+                onTap: () => _filterByCategory(widget.book.namaKategori!),
+              ),
+            if (widget.book.tahunTerbit > 0)
+              _MetaChip(
+                icon: Icons.calendar_today_outlined,
+                label: widget.book.tahunTerbit.toString(),
+              ),
+            if (widget.book.rating != null && widget.book.rating! > 0)
+              _RatingChip(rating: widget.book.rating!),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDescriptionSection() {
+    final description = widget.book.deskripsi!;
+    final isLong = _calculateLines(description) > _descriptionMaxLines;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Sinopsis', style: AppTypography.heading3),
+            if (isLong)
+              TextButton(
+                onPressed: () => setState(() => _isDescriptionExpanded = !_isDescriptionExpanded),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  _isDescriptionExpanded ? 'Tutup' : 'Baca selengkapnya',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          description,
+          style: AppTypography.bodyLg.copyWith(
+            color: AppColors.onSurfaceVariant,
+            height: 1.6,
+          ),
+          maxLines: _isDescriptionExpanded ? null : _descriptionMaxLines,
+          overflow: _isDescriptionExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+      ],
+    );
+  }
+
+  int _calculateLines(String text) {
+    // Rough estimation: average characters per line ~ 35-40
+    return (text.length / 38).ceil();
+  }
+
+  Widget _buildDetailCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.rLg,
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          _DetailRow(
+            icon: Icons.category_outlined,
+            label: 'Kategori',
+            value: widget.book.namaKategori ?? '-',
+          ),
+          _DetailDivider(),
+          _DetailRow(
+            icon: Icons.business_outlined,
+            label: 'Penerbit',
+            value: widget.book.penerbit,
+          ),
+          _DetailDivider(),
+          _DetailRow(
+            icon: Icons.event_outlined,
+            label: 'Tahun Terbit',
+            value: widget.book.tahunTerbit.toString(),
+          ),
+          if (widget.book.namaSubjek != null) ...[
+            _DetailDivider(),
+            _DetailRow(
+              icon: Icons.subject_outlined,
+              label: 'Subjek',
+              value: widget.book.namaSubjek!,
+            ),
+          ],
+          _DetailDivider(),
+          _DetailRow(
+            icon: Icons.location_on_outlined,
+            label: 'Lokasi',
+            value: widget.book.namaLokasi ?? '-',
+          ),
+          _DetailDivider(),
+          _DetailRow(
+            icon: Icons.inventory_2_outlined,
+            label: 'Status',
+            value: _getStatusLabel(),
+            valueStyle: AppTypography.bodyMedium.copyWith(
+              color: _getStatusColor(),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  String _getStatusLabel() {
+    if ((widget.book.stokTersedia ?? 0) > 0 && widget.book.status == 'aktif') {
+      return 'Tersedia (${widget.book.stokTersedia} salinan)';
+    }
+    if (widget.book.status != 'aktif') {
+      return 'Tidak Aktif';
+    }
+    return 'Habis';
+  }
+
+  Color _getStatusColor() {
+    if ((widget.book.stokTersedia ?? 0) > 0 && widget.book.status == 'aktif') {
+      return AppColors.success;
+    }
+    return AppColors.warning;
+  }
+
+  Widget _buildActionBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+        border: Border(
+          top: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: AppButton(
+          label: 'Pinjam',
+          type: AppButtonType.primary,
+          isExpanded: true,
+          icon: Icons.library_add_rounded,
+          onPressed: () => _showBorrowDialog(context, ref),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnavailableBar() {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        border: Border(
+          top: BorderSide(color: AppColors.outlineVariant.withOpacity(0.2)),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Icon(
+              Icons.info_outline_rounded,
+              color: AppColors.warning,
+              size: 20,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                'Buku ini sedang tidak tersedia untuk dipinjam',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -198,7 +389,12 @@ class BookDetailScreen extends ConsumerWidget {
     final user = ref.read(authNotifierProvider).user;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan login terlebih dahulu')),
+        SnackBar(
+          content: const Text('Silakan login terlebih dahulu'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -206,31 +402,60 @@ class BookDetailScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.rLg),
         title: const Text('Konfirmasi Peminjaman'),
-        content: Text('Pinjam "${book.judul}"?'),
+        content: Text('Pinjam "${widget.book.judul}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Batal'),
           ),
-          ElevatedButton(
+          AppButton(
+            label: 'Ya, Pinjam',
+            type: AppButtonType.primary,
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Peminjaman "${book.judul}" berhasil!'),
+                  content: Text('Peminjaman "${widget.book.judul}" berhasil!'),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
                   backgroundColor: AppColors.success,
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Ya, Pinjam'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _toggleBookmark() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Buku disimpan ke wishlist'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  void _filterByAuthor(String author) {
+    // Navigate to katalog with author filter
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Filter penulis: $author'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _filterByCategory(String category) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Filter kategori: $category'),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -245,5 +470,163 @@ class BookDetailScreen extends ConsumerWidget {
       const Color(0xFFFD79A8),
     ];
     return colors[id % colors.length];
+  }
+}
+
+// ===== Helper Widgets =====
+
+class _BackButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: () => Navigator.pop(context),
+      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.white.withValues(alpha: 0.2),
+        foregroundColor: Colors.white,
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(12),
+        minimumSize: const Size(48, 48),
+      ),
+    );
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _MetaChip({
+    required this.icon,
+    required this.label,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final child = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: AppColors.outline),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.rPill,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+          child: child,
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: AppRadius.rPill,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _RatingChip extends StatelessWidget {
+  final double rating;
+
+  const _RatingChip({required this.rating});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: AppColors.warningLight,
+        borderRadius: AppRadius.rPill,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star_rounded, size: 14, color: AppColors.warning),
+          const SizedBox(width: 4),
+          Text(
+            rating.toStringAsFixed(1),
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.warning,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final TextStyle? valueStyle;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: AppColors.outline),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.outline),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: valueStyle ?? AppTypography.bodyMedium.copyWith(color: AppColors.onSurface),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 44),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: AppColors.outlineVariant.withOpacity(0.2),
+      ),
+    );
   }
 }

@@ -7,19 +7,24 @@ import '../../core/theme/app_typography.dart';
 class AppSearchBar extends StatelessWidget {
   final String? hintText;
   final ValueChanged<String>? onChanged;
+  final VoidCallback? onClear;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
+  final bool isLoading;
 
   const AppSearchBar({
     super.key,
     this.hintText,
     this.onChanged,
+    this.onClear,
     this.suffixIcon,
     this.prefixIcon,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasText = (onChanged != null) && (onClear != null);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -53,7 +58,21 @@ class AppSearchBar extends StatelessWidget {
               onChanged: onChanged,
             ),
           ),
-          if (suffixIcon != null) suffixIcon!,
+          if (isLoading)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else if (hasText)
+            IconButton(
+              icon: const Icon(Icons.clear, color: AppColors.textMuted, size: 20),
+              onPressed: onClear,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            )
+          else if (suffixIcon != null)
+            suffixIcon!,
         ],
       ),
     );

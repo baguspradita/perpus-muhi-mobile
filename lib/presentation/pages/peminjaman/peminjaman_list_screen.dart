@@ -53,12 +53,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
       appBar: AppBar(
         title: Text(_tabController.index == 0 ? 'Pinjaman' : 'Riwayat Peminjaman'),
         automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.filter_list),
-          ),
-        ],
+        actions: [],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(58),
           child: Container(
@@ -78,10 +73,16 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
                   borderRadius: AppRadius.rPill,
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: AppColors.primary,
-                unselectedLabelColor: AppColors.outline,
-                labelStyle: AppTypography.labelMd,
-                unselectedLabelStyle: AppTypography.labelMd,
+                labelColor: AppColors.onPrimary,
+                unselectedLabelColor: AppColors.onSurfaceVariant,
+                labelStyle: AppTypography.labelMd.copyWith(
+                  fontSize: 13,
+                  color: AppColors.onPrimary,
+                ),
+                unselectedLabelStyle: AppTypography.labelMd.copyWith(
+                  fontSize: 13,
+                  color: AppColors.onSurfaceVariant,
+                ),
                 dividerHeight: 0,
                 tabs: const [
                   Tab(text: 'Aktif'),
