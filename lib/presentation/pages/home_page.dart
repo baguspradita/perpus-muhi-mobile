@@ -8,14 +8,12 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/app_radius.dart';
 import '../../domain/entities/user_entity.dart';
-import '../../domain/entities/peminjaman_entity.dart';
 import '../../domain/entities/buku_entity.dart';
 import '../providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
-import '../providers/peminjaman_provider.dart';
 import '../providers/dashboard_buku_provider.dart';
-import '../widgets/app_drawer.dart';
 import '../widgets/stat_card.dart';
+import '../widgets/user_avatar.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -27,16 +25,9 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text('Perpustakaan Muhi'),
+        title: const Text('Beranda'),
         automaticallyImplyLeading: false,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: AppColors.primary),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
         actions: [
           Stack(
             alignment: Alignment.center,
@@ -75,8 +66,6 @@ class HomePage extends ConsumerWidget {
             _buildGreeting(context, user),
             const SizedBox(height: AppSpacing.lg),
             _buildStatsSection(context, ref),
-            const SizedBox(height: AppSpacing.lg),
-            _buildActiveLoansSection(context, ref),
             const SizedBox(height: AppSpacing.lg),
             _buildBookSection(
               context,
@@ -128,18 +117,12 @@ class HomePage extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.menu_book_rounded,
-              color: AppColors.primary,
-              size: 22,
-            ),
+          UserAvatar(
+            name: user?.nama ?? 'U',
+            size: 44,
+            backgroundColor: AppColors.primary,
+            textColor: Colors.white,
+            showBorder: false,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -222,156 +205,6 @@ class HomePage extends ConsumerWidget {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildActiveLoansSection(BuildContext context, WidgetRef ref) {
-    final peminjamanState = ref.watch(peminjamanProvider);
-
-    // Get only active loans
-    final activeLoans = peminjamanState.peminjamanAktif
-        .where((loan) => loan.status.toLowerCase() == 'dipinjam')
-        .take(3)
-        .toList();
-
-    if (activeLoans.isEmpty && !peminjamanState.isLoading) {
-      return const SizedBox.shrink();
-    }
-
-    if (peminjamanState.isLoading) {
-      return const SizedBox(
-        height: 200,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Pinjaman Aktif', style: AppTypography.headlineMd),
-            TextButton(
-              onPressed: () {
-                context.go(RouteNames.peminjaman);
-              },
-              child: Text(
-                'Lihat Semua',
-                style: AppTypography.bodySm.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        SizedBox(
-          height: 200,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: activeLoans.length,
-            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-            itemBuilder: (context, index) =>
-                _buildBookLoanCard(activeLoans[index]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBookLoanCard(PeminjamanEntity loan) {
-    final detail = loan.details.firstOrNull;
-    final dueDate = loan.tglJatuhTempo;
-
-    String formatDate(String dateStr) {
-      if (dateStr.isEmpty) return '';
-      try {
-        final date = DateTime.parse(dateStr);
-        return '${date.day.toString().padLeft(2, '0')} ${['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agus', 'Sep', 'Okt', 'Nov', 'Des'][date.month - 1]}, ${date.year}';
-      } catch (e) {
-        return dateStr;
-      }
-    }
-
-    return Container(
-      width: 160,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        borderRadius: AppRadius.rMd,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowPrimary.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Book cover
-          Container(
-            height: 120,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
-            child: const Center(
-              child: Icon(Icons.book, size: 48, color: AppColors.primary),
-            ),
-          ),
-          // Info
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.warningLight,
-                      borderRadius: AppRadius.rPill,
-                    ),
-                    child: Text(
-                      'Dipinjam',
-                      style: AppTypography.labelMd.copyWith(
-                        color: AppColors.warning,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    detail?.judulBuku ?? 'Buku Pinjaman',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodySm.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Tempo: ${formatDate(dueDate)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.outline,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

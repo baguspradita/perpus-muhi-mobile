@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/app_colors.dart';
-import '../core/theme/app_spacing.dart';
-import '../core/theme/app_radius.dart';
-import '../core/theme/app_typography.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_typography.dart';
 
 class AppSwitch extends StatelessWidget {
   final bool value;
@@ -206,25 +206,13 @@ class AppToggleButtons<T> extends StatelessWidget {
     final effectiveSelectedColor = selectedColor ?? AppColors.primary;
     final effectiveUnselectedColor = unselectedColor ?? AppColors.outline;
 
-    return ToggleButtons(
-      isEnabled: isEnabled,
-      onPressed: onChanged != null
-          ? (index) => onChanged!(items[index].value)
-          : null,
-      borderRadius: AppRadius.rMd,
-      selectedColor: Colors.white,
-      fillColor: effectiveSelectedColor,
-      color: effectiveUnselectedColor,
-      borderColor: effectiveUnselectedColor.withValues(alpha: 0.3),
-      selectedBorderColor: effectiveSelectedColor,
-      constraints: const BoxConstraints(
-        minHeight: 40,
-        minWidth: 80,
-      ),
-      children: items.map((item) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Row(
+    final isInteractive = isEnabled && onChanged != null;
+
+    return SegmentedButton<T>(
+      segments: items.map((item) {
+        return ButtonSegment<T>(
+          value: item.value,
+          label: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (item.icon != null) ...[
@@ -241,6 +229,51 @@ class AppToggleButtons<T> extends StatelessWidget {
           ),
         );
       }).toList(),
+      selected: {value},
+      onSelectionChanged: isInteractive
+          ? (newSelection) {
+              if (newSelection.isNotEmpty) {
+                onChanged!(newSelection.first);
+              }
+            }
+          : null,
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return effectiveSelectedColor;
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return effectiveUnselectedColor.withValues(alpha: 0.1);
+          }
+          return Colors.transparent;
+        }),
+        foregroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Colors.white;
+          }
+          return isInteractive
+              ? effectiveUnselectedColor
+              : effectiveUnselectedColor.withValues(alpha: 0.5);
+        }),
+        side: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return BorderSide(color: effectiveSelectedColor, width: 2);
+          }
+          return BorderSide(
+            color: effectiveUnselectedColor.withValues(alpha: 0.3),
+            width: 1,
+          );
+        }),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(
+            borderRadius: AppRadius.rMd,
+          ),
+        ),
+        minimumSize: WidgetStateProperty.all(const Size(80, 40)),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 16),
+        ),
+      ),
     );
   }
 }

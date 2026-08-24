@@ -102,6 +102,8 @@ class DetailPeminjamanEntity extends Equatable {
   final String judulBuku;
   final int jumlah;
   final String? idEksamplar;
+  final String? coverUrl;
+  final String? penulis;
 
   const DetailPeminjamanEntity({
     required this.id,
@@ -109,6 +111,8 @@ class DetailPeminjamanEntity extends Equatable {
     required this.judulBuku,
     required this.jumlah,
     this.idEksamplar,
+    this.coverUrl,
+    this.penulis,
   });
 
   factory DetailPeminjamanEntity.fromJson(Map<String, dynamic> json) {
@@ -119,9 +123,11 @@ class DetailPeminjamanEntity extends Equatable {
       judulBuku: buku?['judul'] as String? ?? json['judul_buku'] as String? ?? '',
       jumlah: json['jumlah'] as int? ?? 1,
       idEksamplar: json['id_eksamplar'] as String?,
+      coverUrl: buku?['cover_url'] as String? ?? buku?['gambar'] as String? ?? buku?['cover'] as String?,
+      penulis: buku?['nama_penulis'] as String? ?? buku?['penulis'] as String? ?? '',
     );
   }
 
   @override
-  List<Object?> get props => [id, bukuId, judulBuku, jumlah];
+  List<Object?> get props => [id, bukuId, judulBuku, jumlah, coverUrl, penulis];
 }

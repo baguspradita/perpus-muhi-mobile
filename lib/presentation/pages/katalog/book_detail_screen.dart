@@ -2,12 +2,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import 'package:intl/intl.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/date_utils.dart';
 import '../../../domain/entities/buku_entity.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/peminjaman_provider.dart';
 import '../../widgets/app_button.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
@@ -399,33 +403,144 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       return;
     }
 
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final firstDue = today.add(const Duration(days: 1));
+    DateTime selectedDue = firstDue;
+    bool isBorrowing = false;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.rLg),
-        title: const Text('Konfirmasi Peminjaman'),
-        content: Text('Pinjam "${widget.book.judul}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          AppButton(
-            label: 'Ya, Pinjam',
-            type: AppButtonType.primary,
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Peminjaman "${widget.book.judul}" berhasil!'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
-                  backgroundColor: AppColors.success,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          final durasi = selectedDue.difference(today).inDays;
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: AppRadius.rLg),
+            title: Text(
+              'Peminjaman "${widget.book.judul}"',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tenggat Pengembalian',
+                  style: AppTypography.labelMd.copyWith(color: AppColors.outline),
                 ),
-              );
-            },
-          ),
-        ],
+                const SizedBox(height: AppSpacing.xs),
+                InkWell(
+                  onTap: isBorrowing
+                      ? null
+                      : () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDue,
+                            firstDate: firstDue,
+                            lastDate: today.add(const Duration(days: 7)),
+                            helpText: 'Pilih Tenggat Pengembalian',
+                          );
+                          if (picked != null) {
+                            setState(() => selectedDue = picked);
+                          }
+                        },
+                  borderRadius: AppRadius.rMd,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.md,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.outlineVariant),
+                      borderRadius: AppRadius.rMd,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.primary),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            AppDateUtils.formatDate(selectedDue),
+                            style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        Text(
+                          '($durasi hari)',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.primary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Maksimal 7 hari',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.outline),
+                ),
+              ],
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actionsPadding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
+            actions: [
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton(
+                      label: 'Batal',
+                      type: AppButtonType.outline,
+                      onPressed: isBorrowing ? null : () => Navigator.pop(dialogContext),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: AppButton(
+                      label: isBorrowing ? 'Memproses...' : 'Pinjam',
+                      type: AppButtonType.primary,
+                      icon: isBorrowing ? null : Icons.library_add_rounded,
+                      onPressed: isBorrowing
+                          ? null
+                          : () async {
+                              setState(() => isBorrowing = true);
+
+                              final tglPinjam = DateFormat('yyyy-MM-dd').format(now);
+                              final tglJatuhTempo = DateFormat('yyyy-MM-dd').format(selectedDue);
+
+                              await ref.read(peminjamanProvider.notifier).createPeminjaman(
+                                userId: user.id,
+                                bukuIds: [widget.book.id],
+                                tglPinjam: tglPinjam,
+                                tglJatuhTempo: tglJatuhTempo,
+                              );
+
+                              if (!context.mounted) return;
+
+                              final error = ref.read(peminjamanProvider).errorMessage;
+                              Navigator.pop(dialogContext);
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    error.isNotEmpty
+                                        ? error
+                                        : 'Peminjaman "${widget.book.judul}" berhasil!',
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
+                                  backgroundColor:
+                                      error.isNotEmpty ? AppColors.error : AppColors.success,
+                                ),
+                              );
+                            },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

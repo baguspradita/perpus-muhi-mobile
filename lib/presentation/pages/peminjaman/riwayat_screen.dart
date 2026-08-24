@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/date_utils.dart';
 import '../../../domain/entities/peminjaman_entity.dart';
 import '../../providers/peminjaman_provider.dart';
 import '../../widgets/empty_state.dart';
@@ -172,13 +173,13 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    peminjaman.tglPinjam,
+                    AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglPinjam) ?? DateTime.now()),
                     style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   if (peminjaman.tglKembali != null) ...[
                     Text(
-                      'Dikembalikan: ${peminjaman.tglKembali}',
+                      'Dikembalikan: ${AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglKembali!) ?? DateTime.now())}',
                       style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: AppSpacing.xs),
@@ -234,11 +235,11 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
             children: [
               _buildDetailRow('ID', peminjaman.id.toString()),
               _buildDetailRow('Peminjam', peminjaman.userName),
-              _buildDetailRow('Tanggal Pinjam', peminjaman.tglPinjam),
-              _buildDetailRow('Jatuh Tempo', peminjaman.tglJatuhTempo),
+              _buildDetailRow('Tanggal Pinjam', AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglPinjam) ?? DateTime.now())),
+              _buildDetailRow('Jatuh Tempo', AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglJatuhTempo) ?? DateTime.now())),
               _buildDetailRow('Status', peminjaman.status),
               if (peminjaman.tglKembali != null)
-                _buildDetailRow('Tanggal Kembali', peminjaman.tglKembali!),
+                _buildDetailRow('Tanggal Kembali', AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglKembali!) ?? DateTime.now())),
               if (peminjaman.denda != null && peminjaman.denda! > 0)
                 _buildDetailRow('Denda', 'Rp ${peminjaman.denda}'),
               const SizedBox(height: AppSpacing.md),

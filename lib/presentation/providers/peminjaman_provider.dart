@@ -41,14 +41,17 @@ class PeminjamanState {
 class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
   final GetPeminjamanListUseCase _getPeminjamanListUseCase;
   final GetRiwayatPeminjamanUseCase _getRiwayatPeminjamanUseCase;
+  final CreatePeminjamanUseCase _createPeminjamanUseCase;
   final KembaliPeminjamanUseCase _kembaliPeminjamanUseCase;
 
   PeminjamanNotifier({
     required GetPeminjamanListUseCase getPeminjamanListUseCase,
     required GetRiwayatPeminjamanUseCase getRiwayatPeminjamanUseCase,
+    required CreatePeminjamanUseCase createPeminjamanUseCase,
     required KembaliPeminjamanUseCase kembaliPeminjamanUseCase,
   })  : _getPeminjamanListUseCase = getPeminjamanListUseCase,
         _getRiwayatPeminjamanUseCase = getRiwayatPeminjamanUseCase,
+        _createPeminjamanUseCase = createPeminjamanUseCase,
         _kembaliPeminjamanUseCase = kembaliPeminjamanUseCase,
         super(const PeminjamanState());
 
@@ -91,7 +94,18 @@ class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
         state = state.copyWith(isLoading: false, errorMessage: failure.message);
       },
       (list) {
-        state = state.copyWith(isLoading: false, peminjamanRiwayat: list, errorMessage: '');
+        // Hanya tampilkan peminjaman yang sudah selesai/dikembalikan
+        final filtered = list.where((loan) {
+          final returned =
+              loan.tglKembali != null && loan.tglKembali!.isNotEmpty;
+          final s = loan.status.toLowerCase();
+          final statusReturned =
+              s == 'kembali' || s == 'dikembalikan' || s == 'selesai';
+          return returned || statusReturned;
+        }).toList();
+
+        state = state.copyWith(
+            isLoading: false, peminjamanRiwayat: filtered, errorMessage: '');
       },
     );
   }
@@ -105,6 +119,31 @@ class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
     ]);
     
     state = state.copyWith(isLoading: false);
+  }
+
+  Future<void> createPeminjaman({
+    required int userId,
+    required List<int> bukuIds,
+    required String tglPinjam,
+    required String tglJatuhTempo,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: '');
+
+    final result = await _createPeminjamanUseCase(
+      userId: userId,
+      bukuIds: bukuIds,
+      tglPinjam: tglPinjam,
+      tglJatuhTempo: tglJatuhTempo,
+    );
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+      },
+      (_) {
+        loadAllData();
+      },
+    );
   }
 
   Future<void> kembaliPeminjaman(int id) async {
@@ -125,6 +164,7 @@ final peminjamanProvider = StateNotifierProvider<PeminjamanNotifier, PeminjamanS
   return PeminjamanNotifier(
     getPeminjamanListUseCase: sl<GetPeminjamanListUseCase>(),
     getRiwayatPeminjamanUseCase: sl<GetRiwayatPeminjamanUseCase>(),
+    createPeminjamanUseCase: sl<CreatePeminjamanUseCase>(),
     kembaliPeminjamanUseCase: sl<KembaliPeminjamanUseCase>(),
   )..loadAllData();
 });

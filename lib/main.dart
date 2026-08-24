@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/dependency_injection/injection_container.dart';
 import 'core/routes/app_router.dart';
@@ -10,6 +11,7 @@ import 'presentation/providers/notification_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
   await initDependencies();
   runApp(const MyApp());
 }
