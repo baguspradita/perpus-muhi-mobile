@@ -3,95 +3,214 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 abstract class AppTypography {
+  // ==================== FONT FAMILIES ====================
+  // Outfit: geometric, modern (Google Fonts) - replaces Satoshi
+  // DM Sans: neutral, legible (Google Fonts)
+  // JetBrains Mono: monospace for data (Google Fonts)
+  static const String _headingFamily = 'Outfit';
+  static const String _bodyFamily = 'DM Sans';
+  static const String _dataFamily = 'JetBrains Mono';
+
   // ==================== DESIGN SYSTEM TYPOGRAPHY ====================
 
-  // Headline LG (32px) - Page titles (e.g., "Library Catalog")
-  static TextStyle get headlineLg => GoogleFonts.inter(
-    fontSize: 32,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textHeading,
-    letterSpacing: -0.03,
-    height: 1.15,
-  );
+  // Display / Headline (Satoshi) — for page titles, hero text
+  static TextStyle get displayLg => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 40,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textHeading,
+        letterSpacing: -1.2,
+        height: 1.05,
+      );
 
-  // Headline LG Mobile (24px) - Page titles on mobile
-  static TextStyle get headlineLgMobile => GoogleFonts.inter(
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textHeading,
-    letterSpacing: -0.02,
-    height: 1.18,
-  );
+  static TextStyle get displayMd => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textHeading,
+        letterSpacing: -0.96,
+        height: 1.1,
+      );
 
-  // Headline MD (20px) - Book titles within cards
-  static TextStyle get headlineMd => GoogleFonts.inter(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textHeading,
-    height: 1.22,
-  );
+  static TextStyle get displaySm => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textHeading,
+        letterSpacing: -0.84,
+        height: 1.15,
+      );
 
-  // Body LG (16px) - Descriptions and long-form text
-  static TextStyle get bodyLg => GoogleFonts.inter(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textBody,
-    height: 1.55,
-  );
+  // Headline (Satoshi) — for section titles, card titles
+  static TextStyle get headlineLg => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textHeading,
+        letterSpacing: -0.48,
+        height: 1.2,
+      );
 
-  // Body SM (14px) - Secondary text
-  static TextStyle get bodySm => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textBody,
-    height: 1.5,
-  );
+  static TextStyle get headlineMd => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textHeading,
+        letterSpacing: -0.3,
+        height: 1.25,
+      );
 
-  // Label MD (12px) - Metadata like ISBN numbers or publication years
-  static TextStyle get labelMd => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textSecondary,
-    letterSpacing: 0.02,
-    height: 1.2,
-  );
+  static TextStyle get headlineSm => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textHeading,
+        letterSpacing: -0.18,
+        height: 1.3,
+      );
 
-  // Button (15px)
-  static TextStyle get button =>
-      GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, height: 1.1);
+  // Title (Satoshi Medium) — for list items, button text
+  static TextStyle get titleLg => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textHeading,
+        letterSpacing: 0.1,
+        height: 1.4,
+      );
+
+  static TextStyle get titleMd => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textHeading,
+        letterSpacing: 0.1,
+        height: 1.4,
+      );
+
+  // Body (DM Sans) — for paragraphs, descriptions, long-form text
+  static TextStyle get bodyLg => GoogleFonts.getFont(
+        _bodyFamily,
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textBody,
+        letterSpacing: 0.15,
+        height: 1.6,
+      );
+
+  static TextStyle get bodyMd => GoogleFonts.getFont(
+        _bodyFamily,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textBody,
+        letterSpacing: 0.15,
+        height: 1.55,
+      );
+
+  static TextStyle get bodySm => GoogleFonts.getFont(
+        _bodyFamily,
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textBody,
+        letterSpacing: 0.2,
+        height: 1.5,
+      );
+
+  // Label (DM Sans Medium/SemiBold) — for metadata, captions, form labels
+  static TextStyle get labelLg => GoogleFonts.getFont(
+        _bodyFamily,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textSecondary,
+        letterSpacing: 0.1,
+        height: 1.4,
+      );
+
+  static TextStyle get labelMd => GoogleFonts.getFont(
+        _bodyFamily,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textSecondary,
+        letterSpacing: 0.5,
+        height: 1.3,
+      );
+
+  static TextStyle get labelSm => GoogleFonts.getFont(
+        _bodyFamily,
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textSecondary,
+        letterSpacing: 0.8,
+        height: 1.2,
+      );
+
+  // Button (Satoshi SemiBold)
+  static TextStyle get buttonLg => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: AppColors.onPrimary,
+        letterSpacing: 0.1,
+        height: 1.2,
+      );
+
+  static TextStyle get buttonMd => GoogleFonts.getFont(
+        _headingFamily,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.onPrimary,
+        letterSpacing: 0.1,
+        height: 1.2,
+      );
+
+  // Data / Numbers (JetBrains Mono with tabular-nums)
+  static TextStyle get dataLg => GoogleFonts.getFont(
+        _dataFamily,
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textHeading,
+        letterSpacing: -0.5,
+        height: 1.1,
+      );
+
+  static TextStyle get dataMd => GoogleFonts.getFont(
+        _dataFamily,
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textHeading,
+        letterSpacing: -0.3,
+        height: 1.2,
+      );
+
+  static TextStyle get dataSm => GoogleFonts.getFont(
+        _dataFamily,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textBody,
+        letterSpacing: 0,
+        height: 1.4,
+      );
+
+  static TextStyle get dataXs => GoogleFonts.getFont(
+        _dataFamily,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textSecondary,
+        letterSpacing: 0,
+        height: 1.3,
+      );
 
   // ==================== LEGACY ALIASES (for backward compatibility) ====================
-  static TextStyle get display => headlineLg;
-  static TextStyle get heading1 => headlineLgMobile;
-  static TextStyle get heading2 => heading1;
-  static TextStyle get heading3 => GoogleFonts.inter(
-    fontSize: 15,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textHeading,
-    letterSpacing: -0.05,
-    height: 1.25,
-  );
-  static TextStyle get bodyMd => bodyLg;
+  static TextStyle get display => displayMd;
+  static TextStyle get heading1 => headlineLg; // 24px - mobile page title
+  static TextStyle get heading2 => headlineMd; // 20px
+  static TextStyle get heading3 => titleLg; // 16px
+  static TextStyle get headlineLgMobile => headlineLg; // 24px - alias for mobile page title
   static TextStyle get bodyLarge => bodyLg;
-  static TextStyle get bodyMedium => bodySm;
-  static TextStyle get bodySmall => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
-    height: 1.4,
-  );
-  static TextStyle get caption => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textMuted,
-    height: 1.3,
-  );
+  static TextStyle get bodyMedium => bodyMd;
+  static TextStyle get bodySmall => bodySm;
+  static TextStyle get caption => labelSm;
   static TextStyle get label => labelMd;
-  static TextStyle get statNumber => GoogleFonts.inter(
-    fontSize: 28,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
-    letterSpacing: -0.6,
-    height: 1.0,
-  );
+  static TextStyle get button => buttonMd;
+  static TextStyle get statNumber => dataLg;
 }
