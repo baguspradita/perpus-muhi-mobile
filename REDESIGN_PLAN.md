@@ -4,14 +4,14 @@
 
 ## 1. Keputusan Desain (Best Practice untuk Tema Perpustakaan)
 
-### 1.1 Tipografi — **Satoshi + DM Sans**
+### 1.1 Tipografi — **Outfit + DM Sans**
 | Peran | Font | Alasan |
 |-------|------|--------|
-| **Heading/Display** | **Satoshi** (Variable: 400-900) | Humanis, ramah, readable di ukuran besar, karakteristik tanpa terlalu "desain". Cocok untuk brand perpustakaan modern yang *approachable*. |
-| **Body/UI** | **DM Sans** (Variable: 400-700) | Neutral, legible di ukuran kecil, metrics mirip Satoshi → harmonic pairing. Lebih ringan dari Inter. |
+| **Heading/Display** | **Outfit** (Variable: 100-900) | Geometris, modern, karakter kuat tanpa terlalu "desain". Cocok untuk brand perpustakaan modern yang *approachable*. *(Catatan: Satoshi awalnya dipilih namun tidak tersedia di Google Fonts — Outfit sebagai pengganti dengan karakter geometric serupa.)* |
+| **Body/UI** | **DM Sans** (Variable: 400-700) | Neutral, legible di ukuran kecil, metrics mirip Outfit → harmonic pairing. Lebih ringan dari Inter. |
 | **Angka/Data** | **JetBrains Mono** (tabular-nums) | Monospace untuk statistik, ISBN, tanggal — rata sempurna. |
 
-**Implementasi**: `google_fonts` sudah ada → tambah `satoshi`, `dm_sans`, `jetbrains_mono`. Gunakan variable font (single file, multi-weight).
+**Implementasi**: `google_fonts` sudah ada → gunakan `outfit`, `dm_sans`, `jetbrains_mono`. Gunakan variable font (single file, multi-weight).
 
 ---
 
@@ -220,9 +220,26 @@ lib/presentation/pages/
 
 ## 8. Status Eksekusi
 
-- [ ] **Fase 1: Fondasi** — *Belum dimulai*
-- [ ] **Fase 2: Komponen Inti** — *Menunggu Fase 1*
-- [ ] **Fase 3: Halaman Utama** — *Menunggu Fase 2*
+- [x] **Fase 1: Fondasi** — ✅ *Selesai*
+  - [x] 1.1 Update `pubspec.yaml` (google_fonts: Outfit, DM Sans, JetBrains Mono)
+  - [x] 1.2 Redefinisi palet warna `app_colors.dart` (Deep Navy + Amber)
+  - [x] 1.3 Typography system baru `app_typography.dart`
+  - [x] 1.4 Spacing & Radius refine (`app_spacing.dart`, `app_radius.dart`)
+  - [x] 1.5 Theme update `app_theme.dart`
+  - [x] 1.6 Noise overlay utility `app_effects.dart` + bonus `app_breakpoints.dart`, `app_motion.dart`
+  - **Catatan**: Satoshi tidak tersedia di Google Fonts → diganti **Outfit** (geometric, karakter serupa). Verifikasi: `flutter analyze` 0 error.
+- [x] **Fase 2: Komponen Inti** — ✅ *Selesai*
+  - [x] 2.1 Button system (filled/tonal/text + danger, spring press scale 0.98)
+  - [x] 2.2 Input fields (border 1px, focus ring amber, helper text)
+  - [x] 2.3 Badge system (square 8px, sentence case)
+  - [x] 2.4 Card system (elevation-only: flat/raised/outlined)
+  - [x] 2.5 StatCard redesign (icon circle accent, JetBrains Mono tabular)
+  - [x] 2.6 BookCard redesign (procedural cover generator, info bottom-aligned) + file baru `procedural_book_cover.dart`
+  - [x] 2.7 Search Bar (focus ring, clear button, loading internal)
+  - [x] 2.8 Empty/Error/Loading states (ilustrasi branded, shimmer composite)
+  - [x] 2.9 Avatar & Chips (squircle 24%, tonal style)
+  - **Verifikasi**: `flutter analyze` 0 error; `flutter build web --release` sukses. Backward compatibility terjaga via legacy alias.
+- [ ] **Fase 3: Halaman Utama** — *Menunggu dimulai*
 - [ ] **Fase 4: Auth & Statis** — *Menunggu Fase 3*
 - [ ] **Fase 5: Polish & Accessibility** — *Menunggu Fase 4*
 
