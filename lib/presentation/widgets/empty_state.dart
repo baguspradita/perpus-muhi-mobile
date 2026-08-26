@@ -3,6 +3,8 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_motion.dart';
+import 'app_button.dart';
 
 class EmptyState extends StatelessWidget {
   final IconData icon;
@@ -10,6 +12,7 @@ class EmptyState extends StatelessWidget {
   final String? subtitle;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final bool useIllustration;
 
   const EmptyState({
     super.key,
@@ -18,6 +21,7 @@ class EmptyState extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onAction,
+    this.useIllustration = true,
   });
 
   @override
@@ -28,52 +32,54 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.borderLight,
-                shape: BoxShape.circle,
+            if (useIllustration)
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 48,
+                  color: AppColors.primary,
+                ),
               ),
-              child: Icon(
-                icon,
-                size: 36,
-                color: AppColors.textMuted,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               title,
-              style: AppTypography.heading3.copyWith(
-                color: AppColors.textPrimary,
+              style: AppTypography.headlineMd.copyWith(
+                color: AppColors.onSurface,
               ),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
               const SizedBox(height: AppSpacing.sm),
-              Text(
-                subtitle!,
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
+              SizedBox(
+                width: 280,
+                child: Text(
+                  subtitle!,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.bodyMd.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              ElevatedButton(
-                onPressed: onAction,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: AppRadius.rMd,
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              const SizedBox(height: AppSpacing.xl),
+              SizedBox(
+                width: 200,
+                child: AppButton(
+                  label: actionLabel!,
+                  type: AppButtonType.filled,
+                  isExpanded: false,
+                  onPressed: onAction!,
                 ),
-                child: Text(actionLabel!),
               ),
             ],
           ],

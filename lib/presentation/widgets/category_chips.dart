@@ -3,8 +3,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_motion.dart';
 
-class CategoryChip extends StatelessWidget {
+class CategoryChip extends StatefulWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
@@ -17,37 +18,45 @@ class CategoryChip extends StatelessWidget {
   });
 
   @override
+  State<CategoryChip> createState() => _CategoryChipState();
+}
+
+class _CategoryChipState extends State<CategoryChip> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: AppRadius.rPill,
-          border: isSelected
-              ? null
-              : Border.all(color: AppColors.outlineVariant, width: 1),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.shadowPrimary.withValues(alpha: 0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: AppTypography.labelMd.copyWith(
-            color: isSelected ? AppColors.onPrimary : AppColors.primary,
-            fontWeight: FontWeight.w600,
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _isPressed ? AppMotion.pressScale : 1.0,
+        duration: AppMotion.fast,
+        child: AnimatedContainer(
+          duration: AppMotion.fast,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? AppColors.primary
+                : AppColors.surfaceContainer,
+            borderRadius: AppRadius.badge,
+            border: widget.isSelected
+                ? null
+                : Border.all(color: AppColors.outlineVariant, width: 1),
+          ),
+          child: Text(
+            widget.label,
+            style: AppTypography.labelMd.copyWith(
+              color: widget.isSelected
+                  ? AppColors.onPrimary
+                  : AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),

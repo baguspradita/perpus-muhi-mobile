@@ -4,9 +4,12 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_motion.dart';
+import '../../core/theme/app_effects.dart';
 import 'app_badge.dart';
+import 'procedural_book_cover.dart';
 
-class BookCard extends StatelessWidget {
+class BookCard extends StatefulWidget {
   final String title;
   final String author;
   final String? coverUrl;
@@ -17,6 +20,7 @@ class BookCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isGridMode;
   final int? heroTag;
+  final int bookId;
 
   const BookCard({
     super.key,
@@ -30,88 +34,95 @@ class BookCard extends StatelessWidget {
     this.onTap,
     this.isGridMode = false,
     this.heroTag,
+    this.bookId = 0,
   });
 
   @override
+  State<BookCard> createState() => _BookCardState();
+}
+
+class _BookCardState extends State<BookCard> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    if (isGridMode) {
-      return _buildGridCard();
-    }
-    return _buildDetailCard();
+    return widget.isGridMode ? _buildGridCard() : _buildDetailCard();
   }
 
   Widget _buildGridCard() {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
-          borderRadius: AppRadius.rMd,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowPrimary.withValues(alpha: 0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover section with badge overlay
-            Expanded(
-              child: Stack(
-                children: [
-                  Hero(
-                    tag: 'book_cover_$heroTag',
-                    child: _buildCoverImage(),
-                  ),
-                  // Status badge top-right
-                  Positioned(
-                    top: AppSpacing.sm,
-                    right: AppSpacing.sm,
-                    child: _buildStatusBadge(),
-                  ),
-                ],
-              ),
-            ),
-            // Info section
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodyLg.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSurface,
+      onTapDown: widget.onTap != null ? (_) => setState(() => _isPressed = true) : null,
+      onTapUp: widget.onTap != null ? (_) => setState(() => _isPressed = false) : null,
+      onTapCancel: widget.onTap != null ? () => setState(() => _isPressed = false) : null,
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _isPressed ? AppMotion.pressScale : 1.0,
+        duration: AppMotion.fast,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerLowest,
+            borderRadius: AppRadius.card,
+            boxShadow: AppGradients.elevation2,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cover section with badge overlay
+              Expanded(
+                child: Stack(
+                  children: [
+                    Hero(
+                      tag: 'book_cover_${widget.heroTag}',
+                      child: _buildCoverImage(),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    author,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodySm.copyWith(
-                      color: AppColors.outline,
+                    // Status badge top-right
+                    Positioned(
+                      top: AppSpacing.sm,
+                      right: AppSpacing.sm,
+                      child: _buildStatusBadge(),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              // Info section - bottom-aligned
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodyLg.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      widget.author,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySm.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildCoverImage() {
-    if (coverUrl != null && coverUrl!.isNotEmpty) {
+    if (widget.coverUrl != null && widget.coverUrl!.isNotEmpty) {
       return CachedNetworkImage(
-        imageUrl: coverUrl!,
+        imageUrl: widget.coverUrl!,
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
@@ -123,137 +134,93 @@ class BookCard extends StatelessWidget {
   }
 
   Widget _buildCoverPlaceholder() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: coverColor,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(16),
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.menu_book_rounded,
-          size: 48,
-          color: Colors.white.withValues(alpha: 0.25),
-        ),
-      ),
+    return ProceduralBookCover(
+      title: widget.title,
+      author: widget.author,
+      bookId: widget.bookId,
+      fit: BoxFit.cover,
     );
   }
 
   Widget _buildDetailCard() {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
-          borderRadius: AppRadius.rMd,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowPrimary.withValues(alpha: 0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Book cover section
-            Container(
-              height: 140,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: coverColor,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
+      onTapDown: widget.onTap != null ? (_) => setState(() => _isPressed = true) : null,
+      onTapUp: widget.onTap != null ? (_) => setState(() => _isPressed = false) : null,
+      onTapCancel: widget.onTap != null ? () => setState(() => _isPressed = false) : null,
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _isPressed ? AppMotion.pressScale : 1.0,
+        duration: AppMotion.fast,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerLowest,
+            borderRadius: AppRadius.card,
+            boxShadow: AppGradients.elevation2,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Book cover section
+              Hero(
+                tag: 'book_cover_${widget.heroTag}',
+                child: ProceduralBookCover(
+                  title: widget.title,
+                  author: widget.author,
+                  bookId: widget.bookId,
+                  height: 140,
                 ),
               ),
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (loanStatus != null)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.warningLight,
-                        borderRadius: AppRadius.rPill,
-                      ),
-                      child: Text(
-                        loanStatus!,
-                        style: AppTypography.labelMd.copyWith(
-                          color: AppColors.warning,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 6),
-                  Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodySm.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Info section
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    author,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.outline,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (dueDate != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
+              // Info section - bottom-aligned
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      'Tempo: $dueDate',
+                      widget.author,
                       style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.outline,
+                        color: AppColors.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (loanStatus != null)
-                        AppBadge(
-                          text: loanStatus!,
-                          variant: AppBadgeVariant.warning,
-                        )
-                      else
-                        AppBadge(
-                          text: isAvailable ? 'Tersedia' : 'Habis',
-                          variant: isAvailable
-                              ? AppBadgeVariant.success
-                              : AppBadgeVariant.danger,
+                    if (widget.dueDate != null) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'Tempo: ${widget.dueDate}',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.onSurfaceVariant,
                         ),
-                      const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 12,
-                        color: AppColors.outline,
                       ),
                     ],
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (widget.loanStatus != null)
+                          AppBadge(
+                            text: widget.loanStatus!,
+                            variant: AppBadgeVariant.warning,
+                          )
+                        else
+                          AppBadge(
+                            text: widget.isAvailable ? 'Tersedia' : 'Habis',
+                            variant: widget.isAvailable
+                                ? AppBadgeVariant.success
+                                : AppBadgeVariant.danger,
+                          ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 12,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -263,14 +230,14 @@ class BookCard extends StatelessWidget {
     String text;
     AppBadgeVariant variant;
 
-    if (loanStatus != null) {
-      text = loanStatus!.toUpperCase();
+    if (widget.loanStatus != null) {
+      text = widget.loanStatus!;
       variant = AppBadgeVariant.warning;
-    } else if (isAvailable) {
-      text = 'TERSEDIA';
+    } else if (widget.isAvailable) {
+      text = 'Tersedia';
       variant = AppBadgeVariant.success;
     } else {
-      text = 'DIPINJAM';
+      text = 'Dipinjam';
       variant = AppBadgeVariant.danger;
     }
 

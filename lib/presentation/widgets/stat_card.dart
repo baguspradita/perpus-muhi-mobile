@@ -3,16 +3,18 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_motion.dart';
+import '../../core/theme/app_effects.dart';
 
-class StatCard extends StatelessWidget {
+class StatCard extends StatefulWidget {
   final String title;
   final String value;
   final String? subtitle;
   final IconData? icon;
   final Color? iconColor;
-  final Color? shadowColor;
   final Color? bgColor;
   final bool isExpanded;
+  final VoidCallback? onTap;
 
   const StatCard({
     super.key,
@@ -21,48 +23,66 @@ class StatCard extends StatelessWidget {
     this.subtitle,
     this.icon,
     this.iconColor,
-    this.shadowColor,
     this.bgColor,
     this.isExpanded = false,
+    this.onTap,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final width = isExpanded ? double.infinity : 150.0;
+  State<StatCard> createState() => _StatCardState();
+}
 
-    return Container(
+class _StatCardState extends State<StatCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = widget.isExpanded ? double.infinity : 150.0;
+    final effectiveBg = widget.bgColor ?? AppColors.surfaceContainerLowest;
+    final effectiveIconColor = widget.iconColor ?? AppColors.accent;
+
+    final card = Container(
       width: width,
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.all(widget.isExpanded ? AppSpacing.lg : AppSpacing.md),
       decoration: BoxDecoration(
-        color: bgColor ?? AppColors.surfaceContainerLowest,
-        borderRadius: AppRadius.rMd,
-        border: Border.all(color: AppColors.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: (shadowColor ?? AppColors.shadowPrimary).withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: effectiveBg,
+        borderRadius: AppRadius.card,
+        boxShadow: AppGradients.elevation2,
       ),
-      child: isExpanded ? _buildExpandedLayout() : _buildCompactLayout(),
+      child: widget.isExpanded
+          ? _buildExpandedLayout(effectiveIconColor)
+          : _buildCompactLayout(effectiveIconColor),
+    );
+
+    if (widget.onTap == null) return card;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _isPressed ? AppMotion.pressScale : 1.0,
+        duration: AppMotion.fast,
+        child: card,
+      ),
     );
   }
 
-  Widget _buildExpandedLayout() {
+  Widget _buildExpandedLayout(Color iconColor) {
     return Row(
       children: [
-        // Icon container
+        // Icon circle - accent 10% background
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: (bgColor ?? AppColors.surfaceContainerLow).withAlpha(100),
-            borderRadius: AppRadius.rMd,
+            color: iconColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(
-            icon ?? Icons.analytics,
-            color: iconColor ?? AppColors.primary,
-            size: 26,
+            widget.icon ?? Icons.analytics_outlined,
+            color: iconColor,
+            size: 28,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -72,21 +92,23 @@ class StatCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                widget.title,
                 style: AppTypography.labelMd.copyWith(
-                  color: AppColors.outline,
+                  color: AppColors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                value,
-                style: AppTypography.statNumber,
+                widget.value,
+                style: AppTypography.dataLg.copyWith(
+                  color: AppColors.onSurface,
+                ),
               ),
-              if (subtitle != null)
+              if (widget.subtitle != null)
                 Text(
-                  subtitle!,
+                  widget.subtitle!,
                   style: AppTypography.bodySm.copyWith(
-                    color: AppColors.outline,
+                    color: AppColors.onSurfaceVariant,
                   ),
                 ),
             ],
@@ -96,26 +118,29 @@ class StatCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactLayout() {
+  Widget _buildCompactLayout(Color iconColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
+          widget.title,
           style: AppTypography.labelMd.copyWith(
-            color: AppColors.outline,
+            color: AppColors.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          value,
-          style: AppTypography.statNumber.copyWith(fontSize: 24),
+          widget.value,
+          style: AppTypography.dataLg.copyWith(
+            fontSize: 24,
+            color: AppColors.onSurface,
+          ),
         ),
-        if (subtitle != null)
+        if (widget.subtitle != null)
           Text(
-            subtitle!,
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+            widget.subtitle!,
+            style: AppTypography.bodySm.copyWith(
+              color: AppColors.onSurfaceVariant,
             ),
           ),
       ],
