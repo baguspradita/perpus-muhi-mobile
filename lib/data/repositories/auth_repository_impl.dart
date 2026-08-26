@@ -94,15 +94,17 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      await _remoteDataSource.logout(
-        await _localStorageService.read('access_token') ?? '',
-      );
+      await _remoteDataSource.logout();
       await _localStorageService.delete('access_token');
       return const Right(null);
     } on ServerException catch (e) {
+      // Even if API fails, local logout should succeed
+      await _localStorageService.delete('access_token');
       return Left(ServerFailure(e.message, statusCode: e.statusCode));
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(e.message, statusCode: e.statusCode));
+    } on UnauthorizedException {
+      // Token already invalid, treat as success
+      await _localStorageService.delete('access_token');
+      return const Right(null);
     } catch (e) {
       await _localStorageService.delete('access_token');
       return Left(ServerFailure('Terjadi kesalahan yang tidak diketahui: $e'));

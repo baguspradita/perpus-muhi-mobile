@@ -11,6 +11,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../domain/entities/buku_entity.dart';
 import '../../providers/katalog_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../widgets/app_search_bar.dart';
 import '../../widgets/book_card.dart';
 import '../../widgets/category_chips.dart';
@@ -62,27 +63,42 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
         title: const Text('Katalog'),
         automaticallyImplyLeading: false,
         actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                tooltip: 'Notifikasi',
-                onPressed: () => context.push(RouteNames.notifications),
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.error,
-                    shape: BoxShape.circle,
+          Consumer(
+            builder: (context, ref, _) {
+              final unreadCount = ref.watch(notificationProvider).unreadBadge;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    tooltip: 'Notifikasi',
+                    onPressed: () => context.push(RouteNames.notifications),
                   ),
-                ),
-              ),
-            ],
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.surface, width: 2),
+                        ),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Text(
+                          unreadCount > 9 ? '9+' : '$unreadCount',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),

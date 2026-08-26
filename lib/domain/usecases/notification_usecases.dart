@@ -27,7 +27,7 @@ class MarkNotificationAsReadUseCase {
 
   MarkNotificationAsReadUseCase(this._repository);
 
-  Future<Either<Failure, void>> call(int id) {
+  Future<Either<Failure, void>> call(String id) {
     return _repository.markAsRead(id);
   }
 }
@@ -39,5 +39,15 @@ class MarkAllNotificationsAsReadUseCase {
 
   Future<Either<Failure, void>> call() {
     return _repository.markAllAsRead();
+  }
+}
+
+class GetUnreadCountUseCase {
+  final NotificationRepository _repository;
+
+  GetUnreadCountUseCase(this._repository);
+
+  Future<Either<Failure, int>> call() {
+    return _repository.getUnreadCount();
   }
 }

@@ -9,6 +9,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/peminjaman_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../widgets/user_avatar.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -283,6 +284,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             title: 'Pengaturan Notifikasi',
             onTap: () => context.push(RouteNames.notifications),
             showDivider: false,
+            badgeCount: ref.watch(notificationProvider).unreadBadge,
           ),
         ]),
         const SizedBox(height: AppSpacing.lg),
@@ -350,6 +352,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required String title,
     required VoidCallback onTap,
     bool showDivider = true,
+    int badgeCount = 0,
   }) {
     return InkWell(
       onTap: onTap,
@@ -385,6 +388,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
             ),
+            if (badgeCount > 0) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                child: Text(
+                  badgeCount > 9 ? '9+' : '$badgeCount',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
             const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
           ],
         ),

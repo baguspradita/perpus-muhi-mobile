@@ -95,11 +95,10 @@ class AuthRemoteDataSource {
     });
   }
 
-  Future<void> logout(String token) async {
+  Future<void> logout() async {
     try {
       final response = await _apiClient.dio.post<Map<String, dynamic>>(
         '/auth/logout',
-        data: {'token': token},
       );
 
       final body = response.data;

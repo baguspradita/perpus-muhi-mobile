@@ -24,12 +24,12 @@ enum NotificationType {
 }
 
 class NotificationEntity extends Equatable {
-  final int id;
+  final String id;
   final String title;
   final String message;
   final NotificationType type;
   final bool isRead;
-  final DateTime createdAt;
+  final String createdAt;
   final String? actionUrl;
 
   const NotificationEntity({
@@ -44,12 +44,14 @@ class NotificationEntity extends Equatable {
 
   factory NotificationEntity.fromJson(Map<String, dynamic> json) {
     return NotificationEntity(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      message: json['message'] as String,
+      id: json['id']?.toString() ?? '',
+      title: json['title'] as String? ??
+          json['judul'] as String? ??
+          'Notifikasi',
+      message: json['message'] as String? ?? json['pesan'] as String? ?? '',
       type: NotificationType.fromString(json['type'] as String? ?? 'info'),
-      isRead: json['is_read'] as bool? ?? false,
-      createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ?? DateTime.now(),
+      isRead: json['is_read'] as bool? ?? (json['read_at'] != null),
+      createdAt: json['created_at'] as String? ?? '',
       actionUrl: json['action_url'] as String?,
     );
   }
@@ -61,18 +63,18 @@ class NotificationEntity extends Equatable {
       'message': message,
       'type': type.value,
       'is_read': isRead,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt,
       'action_url': actionUrl,
     };
   }
 
   NotificationEntity copyWith({
-    int? id,
+    String? id,
     String? title,
     String? message,
     NotificationType? type,
     bool? isRead,
-    DateTime? createdAt,
+    String? createdAt,
     String? actionUrl,
   }) {
     return NotificationEntity(
@@ -103,7 +105,11 @@ class NotificationResponse extends Equatable {
     final dataList = json['data'] as List? ?? [];
     return NotificationResponse(
       data: dataList.map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>)).toList(),
-      meta: NotificationMeta.fromJson(json['meta'] as Map<String, dynamic>? ?? {}),
+      meta: NotificationMeta.fromJson(
+        json['pagination'] as Map<String, dynamic>? ??
+            json['meta'] as Map<String, dynamic>? ??
+            {},
+      ),
     );
   }
 

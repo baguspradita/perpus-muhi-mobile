@@ -12,6 +12,7 @@ class NotificationState {
   final int currentPage;
   final int lastPage;
   final bool hasMore;
+  final int unreadBadge;
 
   const NotificationState({
     this.isLoading = false,
@@ -21,6 +22,7 @@ class NotificationState {
     this.currentPage = 1,
     this.lastPage = 1,
     this.hasMore = true,
+    this.unreadBadge = 0,
   });
 
   NotificationState copyWith({
@@ -31,6 +33,7 @@ class NotificationState {
     int? currentPage,
     int? lastPage,
     bool? hasMore,
+    int? unreadBadge,
   }) {
     return NotificationState(
       isLoading: isLoading ?? this.isLoading,
@@ -40,6 +43,7 @@ class NotificationState {
       currentPage: currentPage ?? this.currentPage,
       lastPage: lastPage ?? this.lastPage,
       hasMore: hasMore ?? this.hasMore,
+      unreadBadge: unreadBadge ?? this.unreadBadge,
     );
   }
 
@@ -50,14 +54,17 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   final GetNotificationsUseCase _getNotificationsUseCase;
   final MarkNotificationAsReadUseCase _markAsReadUseCase;
   final MarkAllNotificationsAsReadUseCase _markAllAsReadUseCase;
+  final GetUnreadCountUseCase _getUnreadCountUseCase;
 
   NotificationNotifier({
     required GetNotificationsUseCase getNotificationsUseCase,
     required MarkNotificationAsReadUseCase markAsReadUseCase,
     required MarkAllNotificationsAsReadUseCase markAllAsReadUseCase,
+    required GetUnreadCountUseCase getUnreadCountUseCase,
   })  : _getNotificationsUseCase = getNotificationsUseCase,
         _markAsReadUseCase = markAsReadUseCase,
         _markAllAsReadUseCase = markAllAsReadUseCase,
+        _getUnreadCountUseCase = getUnreadCountUseCase,
         super(const NotificationState());
 
   Future<void> loadNotifications({bool refresh = false}) async {
@@ -102,6 +109,9 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
         errorMessage: e.toString(),
       );
     }
+
+    // Also load unread badge count
+    await loadUnreadCount();
   }
 
   Future<void> loadMore() async {
@@ -131,7 +141,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     );
   }
 
-  Future<void> markAsRead(int id) async {
+  Future<void> markAsRead(String id) async {
     final index = state.notifications.indexWhere((n) => n.id == id);
     if (index == -1) return;
 
@@ -152,6 +162,8 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
       },
       (_) {},
     );
+
+    await loadUnreadCount();
   }
 
   Future<void> markAllAsRead() async {
@@ -170,6 +182,20 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
       },
       (_) {},
     );
+
+    await loadUnreadCount();
+  }
+
+  Future<void> loadUnreadCount() async {
+    final result = await _getUnreadCountUseCase();
+    result.fold(
+      (failure) {
+        // Keep current badge on failure
+      },
+      (count) {
+        state = state.copyWith(unreadBadge: count);
+      },
+    );
   }
 
   void clearError() {
@@ -182,6 +208,7 @@ final notificationProvider = StateNotifierProvider<NotificationNotifier, Notific
     getNotificationsUseCase: ref.read(getNotificationsUseCaseProvider),
     markAsReadUseCase: ref.read(markNotificationAsReadUseCaseProvider),
     markAllAsReadUseCase: ref.read(markAllNotificationsAsReadUseCaseProvider),
+    getUnreadCountUseCase: ref.read(getUnreadCountUseCaseProvider),
   );
 });
 
@@ -195,6 +222,10 @@ final markNotificationAsReadUseCaseProvider = Provider<MarkNotificationAsReadUse
 
 final markAllNotificationsAsReadUseCaseProvider = Provider<MarkAllNotificationsAsReadUseCase>((ref) {
   return MarkAllNotificationsAsReadUseCase(ref.read(notificationRepositoryProvider));
+});
+
+final getUnreadCountUseCaseProvider = Provider<GetUnreadCountUseCase>((ref) {
+  return GetUnreadCountUseCase(ref.read(notificationRepositoryProvider));
 });
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {

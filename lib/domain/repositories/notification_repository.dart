@@ -10,7 +10,9 @@ abstract class NotificationRepository {
     bool unreadOnly = false,
   });
 
-  Future<Either<Failure, void>> markAsRead(int id);
+  Future<Either<Failure, void>> markAsRead(String id);
 
   Future<Either<Failure, void>> markAllAsRead();
+
+  Future<Either<Failure, int>> getUnreadCount();
 }

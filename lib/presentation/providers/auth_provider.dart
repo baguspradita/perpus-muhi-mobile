@@ -219,7 +219,8 @@ Future<void> loadUserProfile() async {
 
     result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        // Even if API fails, local logout should clear auth state
+        state = const AuthState();
       },
       (_) {
         state = const AuthState();

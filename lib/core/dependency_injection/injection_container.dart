@@ -163,6 +163,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<MarkAllNotificationsAsReadUseCase>(
     () => MarkAllNotificationsAsReadUseCase(sl<NotificationRepository>()),
   );
+  sl.registerLazySingleton<GetUnreadCountUseCase>(
+    () => GetUnreadCountUseCase(sl<NotificationRepository>()),
+  );
 }
 
 // ═══════════════════════════════════════════════════════
@@ -212,17 +215,6 @@ class _AuthInterceptor extends Interceptor {
       _logger.w('Token expired / unauthorized — token removed');
     }
 
-    // Skip logging 404 for notifications endpoint (expected during development)
-    final isNotifications404 = dioException.response?.statusCode == 404 &&
-        dioException.requestOptions.path.contains('notifications');
-
-    if (!isNotifications404) {
-      _logger.e(
-        'API Error [${dioException.response?.statusCode}]',
-        error: dioException.message,
-      );
-    }
-
     handler.next(dioException);
   }
 
@@ -238,17 +230,6 @@ class _AuthInterceptor extends Interceptor {
 class _LoggingInterceptor extends Interceptor {
   @override
   void onError(DioException dioException, ErrorInterceptorHandler handler) {
-    // Skip logging 404 for notifications endpoint (expected during development)
-    final isNotifications404 = dioException.response?.statusCode == 404 &&
-        dioException.requestOptions.path.contains('notifications');
-
-    if (!isNotifications404) {
-      _logger.e(
-        'HTTP ${dioException.response?.statusCode} ${dioException.requestOptions.method.toUpperCase()} '
-        '${dioException.requestOptions.uri}',
-        error: dioException.message,
-      );
-    }
     handler.next(dioException);
   }
 }

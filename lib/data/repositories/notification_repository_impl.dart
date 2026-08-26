@@ -18,23 +18,23 @@ class NotificationRepositoryImpl implements NotificationRepository {
   })  : _remoteDataSource = remoteDataSource,
         _localStorage = localStorage;
 
-  Future<Set<int>> _getReadNotificationIds() async {
+  Future<Set<String>> _getReadNotificationIds() async {
     final jsonString = await _localStorage.read(_readNotificationsKey);
-    if (jsonString == null || jsonString.isEmpty) return <int>{};
+    if (jsonString == null || jsonString.isEmpty) return <String>{};
     try {
       final ids = jsonString
           .split(',')
-          .map((e) => int.tryParse(e.trim()))
-          .whereType<int>()
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
           .toSet();
       return ids;
     } catch (_) {
-      return <int>{};
+      return <String>{};
     }
   }
 
-  Future<void> _saveReadNotificationIds(Set<int> ids) async {
-    final jsonString = ids.map((e) => e.toString()).join(',');
+  Future<void> _saveReadNotificationIds(Set<String> ids) async {
+    final jsonString = ids.join(',');
     await _localStorage.write(_readNotificationsKey, jsonString);
   }
 
@@ -81,7 +81,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
-  Future<Either<Failure, void>> markAsRead(int id) async {
+  Future<Either<Failure, void>> markAsRead(String id) async {
     try {
       final readIds = await _getReadNotificationIds();
       readIds.add(id);
@@ -110,6 +110,16 @@ class NotificationRepositoryImpl implements NotificationRepository {
       _remoteDataSource.markAllAsRead().catchError((_) {});
 
       return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getUnreadCount() async {
+    try {
+      final count = await _remoteDataSource.getUnreadCount();
+      return Right(count);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

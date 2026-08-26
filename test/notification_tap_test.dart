@@ -18,22 +18,24 @@ class _SeededNotifier extends NotificationNotifier {
     GetNotificationsUseCase g,
     MarkNotificationAsReadUseCase m,
     MarkAllNotificationsAsReadUseCase a,
+    GetUnreadCountUseCase u,
   ) : super(
           getNotificationsUseCase: g,
           markAsReadUseCase: m,
           markAllAsReadUseCase: a,
+          getUnreadCountUseCase: u,
         ) {
     debugPrint('_SeededNotifier: initial state notifications = ${state.notifications.length}');
     state = state.copyWith(
       isLoading: false,
       notifications: [
         NotificationEntity(
-          id: 1,
+          id: '1',
           title: 'Buku berhasil dikembalikan',
           message: 'Test',
           type: NotificationType.success,
           isRead: false,
-          createdAt: DateTime(2000),
+          createdAt: 'Baru saja',
           actionUrl: '/peminjaman/123',
         ),
       ],
@@ -49,9 +51,11 @@ class _SeededNotifier extends NotificationNotifier {
   @override
   Future<void> loadMore() async {}
   @override
-  Future<void> markAsRead(int id) async {}
+  Future<void> markAsRead(String id) async {}
   @override
   Future<void> markAllAsRead() async {}
+  @override
+  Future<void> loadUnreadCount() async {}
   @override
   void clearError() {}
 }
@@ -90,12 +94,13 @@ void main() {
     final g = GetIt.I<GetNotificationsUseCase>();
     final m = GetIt.I<MarkNotificationAsReadUseCase>();
     final a = GetIt.I<MarkAllNotificationsAsReadUseCase>();
+    final u = GetIt.I<GetUnreadCountUseCase>();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           notificationProvider
-              .overrideWith((ref) => _SeededNotifier(g, m, a)),
+              .overrideWith((ref) => _SeededNotifier(g, m, a, u)),
         ],
         child: MaterialApp.router(
           routerConfig: _testRouter(),

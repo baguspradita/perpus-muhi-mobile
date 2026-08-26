@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -231,6 +232,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
 
     final tglPinjamFormatted = formatDateShort(peminjaman.tglPinjam);
     final tglJatuhTempoFormatted = formatDateShort(peminjaman.tglJatuhTempo);
+    final denda = peminjaman.hitungDenda();
 
     Widget badge;
     bool isLate = false;
@@ -438,19 +440,34 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
                                         ),
                                       ),
                                       const SizedBox(height: 1),
-                                      Text(
-                                        isReturned ? formatDateShort(peminjaman.tglKembali ?? '') : tglJatuhTempoFormatted,
-                                        style: AppTypography.bodyMedium.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.onSurface,
-                                          fontSize: 12,
+                                        Text(
+                                          isReturned ? formatDateShort(peminjaman.tglKembali ?? '') : tglJatuhTempoFormatted,
+                                          style: AppTypography.bodyMedium.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.onSurface,
+                                            fontSize: 12,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
+                                ],
+                              ),
+                              if (isLate && !isReturned && denda > 0) ...[
+                                const SizedBox(height: AppSpacing.xs),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Denda: ${_formatCurrency(denda)}',
+                                      style: AppTypography.bodySmall.copyWith(
+                                        color: AppColors.danger,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
-                            ),
                           ],
                         ),
                       ),
@@ -589,5 +606,13 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
     } catch (e) {
       return dateStr;
     }
+  }
+
+  String _formatCurrency(int value) {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(value);
   }
 }

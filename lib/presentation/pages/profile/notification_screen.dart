@@ -7,7 +7,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/date_utils.dart';
 import '../../../../domain/entities/notification_entity.dart';
 import '../../../../presentation/providers/notification_provider.dart';
 import '../../../../presentation/widgets/loading_shimmer.dart';
@@ -280,7 +279,7 @@ class _NotificationItem extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        AppDateUtils.formatRelativeTime(notification.createdAt),
+                        notification.createdAt,
                         style: AppTypography.bodySmall.copyWith(
                           color: AppColors.outline,
                         ),

@@ -28,11 +28,16 @@ class MyApp extends StatelessWidget {
         markNotificationAsReadUseCaseProvider.overrideWithValue(sl<MarkNotificationAsReadUseCase>()),
         markAllNotificationsAsReadUseCaseProvider.overrideWithValue(sl<MarkAllNotificationsAsReadUseCase>()),
       ],
-      child: MaterialApp.router(
-        title: 'Perpustakaan Muhi',
-        theme: AppTheme.lightTheme,
-        routerConfig: router,
-        debugShowCheckedModeBanner: false,
+      child: Consumer(
+        builder: (context, ref, _) {
+          final router = ref.watch(routerProvider);
+          return MaterialApp.router(
+            title: 'Perpustakaan Muhi',
+            theme: AppTheme.lightTheme,
+            routerConfig: router,
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }
