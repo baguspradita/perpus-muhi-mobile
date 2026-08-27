@@ -109,7 +109,7 @@ class _MenuTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: AppColors.outline, size: 20),
+            Icon(Icons.arrow_forward_ios, color: AppColors.outline, size: 20),
           ],
         ),
       ),

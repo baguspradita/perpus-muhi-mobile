@@ -77,168 +77,198 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         centerTitle: true,
         automaticallyImplyLeading: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header icon
-              Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.lock_outline,
-                    color: AppColors.primary,
-                    size: 40,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Center(
-                child: Text(
-                  'Ubah Password Anda',
-                  style: AppTypography.headlineMd,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Center(
-                child: Text(
-                  'Pastikan password baru Anda kuat dan mudah diingat',
-                  style: AppTypography.bodySm.copyWith(
-                    color: AppColors.outline,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-
-              // Form fields
-              AppTextField(
-                labelText: 'Password Saat Ini',
-                hintText: 'Masukkan password saat ini',
-                controller: _currentPasswordController,
-                obscureText: _isCurrentPasswordHidden,
-                prefixIcon: const Icon(Icons.lock_outline, color: AppColors.outline),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isCurrentPasswordHidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: AppColors.outline,
-                  ),
-                  onPressed: () {
-                    setState(() => _isCurrentPasswordHidden = !_isCurrentPasswordHidden);
-                  },
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Password saat ini tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              AppTextField(
-                labelText: 'Password Baru',
-                hintText: 'Masukkan password baru',
-                controller: _newPasswordController,
-                obscureText: _isNewPasswordHidden,
-                prefixIcon: const Icon(Icons.lock_reset, color: AppColors.outline),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isNewPasswordHidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: AppColors.outline,
-                  ),
-                  onPressed: () {
-                    setState(() => _isNewPasswordHidden = !_isNewPasswordHidden);
-                  },
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Password baru tidak boleh kosong';
-                  }
-                  if (value.length < 8) {
-                    return 'Password minimal 8 karakter';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              AppTextField(
-                labelText: 'Konfirmasi Password Baru',
-                hintText: 'Ulangi password baru',
-                controller: _confirmPasswordController,
-                obscureText: _isConfirmPasswordHidden,
-                prefixIcon: const Icon(Icons.lock_outline, color: AppColors.outline),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isConfirmPasswordHidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: AppColors.outline,
-                  ),
-                  onPressed: () {
-                    setState(() => _isConfirmPasswordHidden = !_isConfirmPasswordHidden);
-                  },
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Konfirmasi password tidak boleh kosong';
-                  }
-                  if (value != _newPasswordController.text) {
-                    return 'Password tidak cocok';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.xl),
-
-              // Tips section
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.infoLight,
-                  borderRadius: AppRadius.rMd,
-                ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Form(
+                key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Tips Password Kuat:',
-                      style: AppTypography.labelMd.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                    // Header icon
+                    Center(
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentContainer,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.lock_rounded,
+                          color: AppColors.accent,
+                          size: 40,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      '• Minimal 8 karakter\n• Kombinasi huruf besar dan kecil\n• Mengandung angka dan simbol\n• Jangan gunakan informasi pribadi',
-                      style: AppTypography.bodySm.copyWith(
-                        color: AppColors.onSurfaceVariant,
+                    const SizedBox(height: AppSpacing.lg),
+                    Center(
+                      child: Text(
+                        'Ubah Password Anda',
+                        style: AppTypography.headlineMd,
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Center(
+                      child: Text(
+                        'Pastikan password baru Anda kuat dan mudah diingat',
+                        style: AppTypography.bodySm.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Form fields
+                    AppTextField(
+                      labelText: 'Password Saat Ini',
+                      hintText: 'Masukkan password saat ini',
+                      controller: _currentPasswordController,
+                      obscureText: _isCurrentPasswordHidden,
+                      prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isCurrentPasswordHidden ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                          color: AppColors.outline,
+                        ),
+                        onPressed: () {
+                          setState(() => _isCurrentPasswordHidden = !_isCurrentPasswordHidden);
+                        },
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Password saat ini tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    AppTextField(
+                      labelText: 'Password Baru',
+                      hintText: 'Masukkan password baru',
+                      controller: _newPasswordController,
+                      obscureText: _isNewPasswordHidden,
+                      prefixIcon: const Icon(Icons.lock_reset, color: AppColors.outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isNewPasswordHidden ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                          color: AppColors.outline,
+                        ),
+                        onPressed: () {
+                          setState(() => _isNewPasswordHidden = !_isNewPasswordHidden);
+                        },
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Password baru tidak boleh kosong';
+                        }
+                        if (value.length < 8) {
+                          return 'Password minimal 8 karakter';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    AppTextField(
+                      labelText: 'Konfirmasi Password Baru',
+                      hintText: 'Ulangi password baru',
+                      controller: _confirmPasswordController,
+                      obscureText: _isConfirmPasswordHidden,
+                      prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordHidden ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                          color: AppColors.outline,
+                        ),
+                        onPressed: () {
+                          setState(() => _isConfirmPasswordHidden = !_isConfirmPasswordHidden);
+                        },
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Konfirmasi password tidak boleh kosong';
+                        }
+                        if (value != _newPasswordController.text) {
+                          return 'Password tidak cocok';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Tips section
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentContainer,
+                        borderRadius: AppRadius.rMd,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tips Password Kuat:',
+                            style: AppTypography.labelMd.copyWith(
+                              color: AppColors.onAccentContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            '• Minimal 8 karakter\n• Kombinasi huruf besar dan kecil\n• Mengandung angka dan simbol\n• Jangan gunakan informasi pribadi',
+                            style: AppTypography.bodySm.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
-
-              // Change button
-              SizedBox(
-                width: double.infinity,
-                child: AppButton(
-                  label: _isLoading ? 'Mengubah...' : 'Ubah Password',
-                  onPressed: _changePassword,
-                  isLoading: _isLoading,
-                  isExpanded: true,
-                ),
-              ),
-            ],
+            ),
           ),
+          // Sticky save bar
+          _buildStickyBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStickyBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowPrimary.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+        border: Border(
+          top: BorderSide(color: AppColors.outlineVariant),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: AppButton(
+          label: _isLoading ? 'Mengubah...' : 'Ubah Password',
+          onPressed: _changePassword,
+          isLoading: _isLoading,
+          isExpanded: true,
         ),
       ),
     );

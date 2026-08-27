@@ -11,6 +11,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/peminjaman_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/app_button.dart';
+import '../../widgets/spring_sheet.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -100,7 +102,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppColors.shadowPrimary,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -144,7 +146,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.school_outlined, size: 16, color: AppColors.outline),
+              const Icon(Icons.school_rounded, size: 16, color: AppColors.outline),
               const SizedBox(width: 6),
               Text(
                 user?.role == 'siswa'
@@ -185,7 +187,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
+                        color: AppColors.shadowPrimary,
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -222,7 +224,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
+                        color: AppColors.shadowPrimary,
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -264,23 +266,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _buildSectionHeader('AKUN'),
         _buildMenuCard([
           _buildMenuRowItem(
-            icon: Icons.person_outlined,
-            iconBgColor: const Color(0xFFEFF6FF),
-            iconColor: const Color(0xFF1D4ED8),
+            icon: Icons.person,
+            iconBgColor: AppColors.accentContainer,
+            iconColor: AppColors.accent,
             title: 'Edit Profil',
             onTap: () => context.push(RouteNames.editProfile),
           ),
           _buildMenuRowItem(
-            icon: Icons.lock_outline,
-            iconBgColor: const Color(0xFFEFF6FF),
-            iconColor: const Color(0xFF1D4ED8),
+            icon: Icons.lock_rounded,
+            iconBgColor: AppColors.accentContainer,
+            iconColor: AppColors.accent,
             title: 'Ubah Password',
             onTap: () => context.push(RouteNames.changePassword),
           ),
           _buildMenuRowItem(
-            icon: Icons.notifications_none_outlined,
-            iconBgColor: const Color(0xFFEFF6FF),
-            iconColor: const Color(0xFF1D4ED8),
+            icon: Icons.notifications_outlined,
+            iconBgColor: AppColors.accentContainer,
+            iconColor: AppColors.accent,
             title: 'Pengaturan Notifikasi',
             onTap: () => context.push(RouteNames.notifications),
             showDivider: false,
@@ -292,20 +294,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _buildMenuCard([
           _buildMenuRowItem(
             icon: Icons.info_outline,
-            iconBgColor: const Color(0xFFF1F5F9),
-            iconColor: const Color(0xFF475569),
+            iconBgColor: AppColors.surfaceContainer,
+            iconColor: AppColors.onSurfaceVariant,
             title: 'Tentang Perpustakaan',
             onTap: () => context.push(RouteNames.about),
           ),
           _buildMenuRowItem(
             icon: Icons.help_outline,
-            iconBgColor: const Color(0xFFF1F5F9),
-            iconColor: const Color(0xFF475569),
+            iconBgColor: AppColors.surfaceContainer,
+            iconColor: AppColors.onSurfaceVariant,
             title: 'Bantuan / FAQ',
             onTap: () => _showHelpBottomSheet(context),
             showDivider: false,
           ),
         ]),
+        const SizedBox(height: AppSpacing.lg),
+        // Logout - danger tonal
+        AppButton(
+          label: 'Keluar',
+          type: AppButtonType.danger,
+          icon: Icons.logout,
+          isExpanded: true,
+          onPressed: () => _confirmLogout(context, ref),
+        ),
       ],
     );
   }
@@ -333,7 +344,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         border: Border.all(color: Colors.grey.shade100, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppColors.shadowPrimary,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -407,7 +418,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               const SizedBox(width: AppSpacing.sm),
             ],
-            const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
           ],
         ),
       ),
@@ -418,30 +429,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: const BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.outlineVariant,
-                  borderRadius: AppRadius.rPill,
+      builder: (context) => SpringSheet(
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: const BoxDecoration(
+            color: AppColors.surfaceContainerLowest,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.outlineVariant,
+                    borderRadius: AppRadius.rPill,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Pengaturan Akun',
-              style: AppTypography.heading3.copyWith(fontSize: 16),
-            ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'Pengaturan Akun',
+                style: AppTypography.heading3.copyWith(fontSize: 16),
+              ),
             const SizedBox(height: AppSpacing.md),
             ListTile(
               leading: const Icon(Icons.logout, color: AppColors.error),
@@ -461,7 +473,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   void _showHelpBottomSheet(BuildContext context) {
@@ -469,28 +481,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: const BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.outlineVariant,
-                  borderRadius: AppRadius.rPill,
+      builder: (context) => SpringSheet(
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: const BoxDecoration(
+            color: AppColors.surfaceContainerLowest,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.outlineVariant,
+                    borderRadius: AppRadius.rPill,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text('Bantuan & FAQ', style: AppTypography.headlineMd),
+              const SizedBox(height: AppSpacing.md),
+              Text('Bantuan & FAQ', style: AppTypography.headlineMd),
             const SizedBox(height: AppSpacing.md),
             _buildFAQItem(
               'Bagaimana cara meminjam buku?',
@@ -516,7 +529,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildFAQItem(String question, String answer) {

@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_effects.dart';
 import '../../domain/entities/user_entity.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/user_avatar.dart';
@@ -89,21 +90,25 @@ class IdentificationScreen extends ConsumerWidget {
   }
 
   Widget _buildIdentityCard(UserEntity? user) {
+    final id = user?.nisn ??
+        user?.nip ??
+        (user?.id.toString() ?? '');
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: Colors.white,
         borderRadius: AppRadius.rLg,
-        border: Border.all(color: AppColors.outlineVariant),
+        border: Border.all(color: AppColors.outlineVariant, width: 1),
+        boxShadow: AppGradients.elevation2,
       ),
       child: Column(
         children: [
           Text(
-            'Nomor Identitas',
+            'Kartu Identitas',
             style: AppTypography.headlineMd,
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.md),
 
           // NISN atau NIP
           if (user?.nisn != null) ...[
@@ -120,7 +125,7 @@ class IdentificationScreen extends ConsumerWidget {
               icon: Icons.badge_outlined,
               label: 'NIP',
               value: user!.nip!,
-              iconColor: AppColors.secondary,
+              iconColor: AppColors.primary,
             ),
             const SizedBox(height: AppSpacing.md),
           ],
@@ -131,16 +136,16 @@ class IdentificationScreen extends ConsumerWidget {
               icon: Icons.class_outlined,
               label: 'Kelas',
               value: user!.kelas!.toString(),
-              iconColor: AppColors.info,
+              iconColor: AppColors.primary,
             ),
             const SizedBox(height: AppSpacing.md),
           ],
           if (user?.jurusan != null && user!.jurusan!.isNotEmpty) ...[
             _buildIdentityRow(
-              icon: Icons.school_outlined,
+              icon: Icons.school_rounded,
               label: 'Jurusan',
               value: user.jurusan!,
-              iconColor: AppColors.tertiary,
+              iconColor: AppColors.primary,
             ),
             const SizedBox(height: AppSpacing.md),
           ],
@@ -148,12 +153,19 @@ class IdentificationScreen extends ConsumerWidget {
           // Mapel (untuk guru)
           if (user?.mapel != null && user!.mapel!.isNotEmpty) ...[
             _buildIdentityRow(
-              icon: Icons.menu_book_outlined,
+              icon: Icons.menu_book,
               label: 'Mata Pelajaran',
               value: user.mapel!,
-              iconColor: AppColors.warning,
+              iconColor: AppColors.primary,
             ),
           ],
+
+          const SizedBox(height: AppSpacing.lg),
+          const Divider(height: 1, thickness: 1, color: AppColors.outlineVariant),
+          const SizedBox(height: AppSpacing.lg),
+
+          // Barcode (print-ready)
+          if (id.isNotEmpty) _BarcodeWidget(data: id),
         ],
       ),
     );
@@ -317,15 +329,94 @@ class IdentificationScreen extends ConsumerWidget {
   IconData _getRoleIcon(String? role) {
     switch (role) {
       case 'siswa':
-        return Icons.school;
+        return Icons.school_rounded;
       case 'guru':
         return Icons.person;
       case 'petugas':
-        return Icons.admin_panel_settings;
+        return Icons.settings;
       default:
-        return Icons.person_outline;
+        return Icons.person;
     }
   }
+}
+
+class _BarcodeWidget extends StatelessWidget {
+  final String data;
+
+  const _BarcodeWidget({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Barcode Identitas',
+          style: AppTypography.bodySm.copyWith(
+            color: AppColors.outline,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        CustomPaint(
+          size: const Size(280, 60),
+          painter: _BarcodePainter(data: data),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          data,
+          style: AppTypography.dataSm.copyWith(
+            fontWeight: FontWeight.w500,
+            letterSpacing: 2,
+            color: AppColors.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BarcodePainter extends CustomPainter {
+  final String data;
+
+  _BarcodePainter({required this.data});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.onSurface
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.fill;
+
+    final bars = _generateBars(data);
+    final barCount = bars.length;
+    final barWidth = size.width / barCount;
+
+    for (int i = 0; i < barCount; i++) {
+      final barHeight = size.height * bars[i];
+      final x = i * barWidth;
+      canvas.drawRect(
+        Rect.fromLTWH(x, 0, barWidth * 0.7, barHeight),
+        paint,
+      );
+    }
+  }
+
+  List<double> _generateBars(String input) {
+    final heights = <double>[];
+    for (int i = 0; i < input.length; i++) {
+      final code = input.codeUnitAt(i);
+      heights.add(0.3 + ((code % 70) / 100));
+      if (i > 1) {
+        heights.add(0.1);
+      }
+    }
+    while (heights.length < 80) {
+      heights.add(0.3 + ((heights.length * 17) % 70) / 100);
+    }
+    return heights.take(120).toList();
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // Simple AppBadgeVariant enum for IdentificationScreen

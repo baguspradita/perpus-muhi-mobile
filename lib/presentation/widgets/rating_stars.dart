@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_colors.dart';
@@ -28,7 +28,7 @@ class RatingStars extends StatelessWidget {
                 ? Icons.star
                 : index < rating
                     ? Icons.star_half
-                    : Icons.star_border,
+                    : Icons.star,
             size: starSize,
             color: AppColors.starFilled,
           );

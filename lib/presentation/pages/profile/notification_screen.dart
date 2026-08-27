@@ -10,6 +10,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../domain/entities/notification_entity.dart';
 import '../../../../presentation/providers/notification_provider.dart';
 import '../../../../presentation/widgets/loading_shimmer.dart';
+import '../../../../presentation/widgets/empty_state.dart';
 
 class NotificationScreen extends ConsumerStatefulWidget {
   const NotificationScreen({super.key});
@@ -106,29 +107,13 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: AppColors.error),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Gagal Memuat Notifikasi',
-              style: AppTypography.heading3.copyWith(color: AppColors.onSurface),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              message,
-              style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton.icon(
-              onPressed: () => ref.read(notificationProvider.notifier).loadNotifications(refresh: true),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-            ),
-          ],
+        child: EmptyState(
+          icon: Icons.error_outline,
+          title: 'Gagal Memuat Notifikasi',
+          subtitle: message,
+          actionLabel: 'Coba Lagi',
+          onAction: () =>
+              ref.read(notificationProvider.notifier).loadNotifications(refresh: true),
         ),
       ),
     );
@@ -138,23 +123,10 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.notifications_none, size: 64, color: AppColors.outline),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Belum Ada Notifikasi',
-              style: AppTypography.heading3.copyWith(color: AppColors.onSurface),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Notifikasi akan muncul di sini ketika ada aktivitas baru',
-              style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        child: EmptyState(
+          icon: Icons.notifications_outlined,
+          title: 'Belum Ada Notifikasi',
+          subtitle: 'Notifikasi akan muncul di sini ketika ada aktivitas baru',
         ),
       ),
     );
@@ -232,19 +204,23 @@ class _NotificationItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: isUnread
+            ? AppColors.primary.withValues(alpha: 0.05)
+            : AppColors.surfaceContainerLowest,
         borderRadius: AppRadius.rMd,
         border: Border.all(
-          color: isUnread ? color : AppColors.outlineVariant,
+          color: isUnread ? color.withValues(alpha: 0.4) : AppColors.outlineVariant,
           width: isUnread ? 1.5 : 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowPrimary,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: isUnread
+            ? null
+            : [
+                BoxShadow(
+                  color: AppColors.shadowPrimary,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: InkWell(
         onTap: onTap,
@@ -311,7 +287,7 @@ class _NotificationItem extends StatelessWidget {
                   const SizedBox(height: AppSpacing.sm),
                   IconButton(
                     onPressed: onMarkAsRead,
-                    icon: Icon(Icons.check_circle_outline, color: color, size: 20),
+                    icon: Icon(Icons.check_circle, color: color, size: 20),
                     tooltip: 'Tandai Sudah Dibaca',
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     padding: EdgeInsets.zero,
@@ -330,7 +306,7 @@ class _NotificationItem extends StatelessWidget {
       case NotificationType.warning:
         return Icons.warning_amber;
       case NotificationType.success:
-        return Icons.check_circle_outline;
+        return Icons.check_circle;
       case NotificationType.error:
         return Icons.error_outline;
       case NotificationType.info:

@@ -6,11 +6,80 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_typography.dart';
+import '../widgets/skip_to_content.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   final Widget child;
 
   const ScaffoldWithNavBar({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final contentFocusNode = FocusNode(debugLabel: 'main-content');
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          FocusTraversalGroup(
+            policy: OrderedTraversalPolicy(),
+            child: Column(
+              children: [
+                SkipToContent(targetFocusNode: contentFocusNode),
+                Expanded(
+                  child: Focus(
+                    focusNode: contentFocusNode,
+                    child: child,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: AppColors.outlineVariant, width: 1),
+            ),
+          ),
+          child: NavigationBar(
+            selectedIndex: _calculateSelectedIndex(context),
+            onDestinationSelected: (index) => _onItemTapped(context, index),
+            backgroundColor: AppColors.surfaceContainerLowest,
+            indicatorColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            height: 72,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            elevation: 0,
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home_outlined, color: AppColors.primary),
+                label: 'Beranda',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.menu_book),
+                selectedIcon: Icon(Icons.menu_book, color: AppColors.primary),
+                label: 'Katalog',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.menu_book),
+                selectedIcon: Icon(Icons.menu_book, color: AppColors.primary),
+                label: 'Pinjaman',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person),
+                selectedIcon: Icon(Icons.person, color: AppColors.primary),
+                label: 'Profil',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
@@ -36,54 +105,5 @@ class ScaffoldWithNavBar extends StatelessWidget {
         context.go(RouteNames.profile);
         break;
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          decoration: const BoxDecoration(
-            border: Border(
-              top: BorderSide(color: AppColors.outlineVariant, width: 1),
-            ),
-          ),
-          child: NavigationBar(
-            selectedIndex: _calculateSelectedIndex(context),
-            onDestinationSelected: (index) => _onItemTapped(context, index),
-            backgroundColor: AppColors.surfaceContainerLowest,
-            indicatorColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            height: 72,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            elevation: 0,
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home, color: AppColors.primary),
-                label: 'Beranda',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.menu_book_outlined),
-                selectedIcon: Icon(Icons.menu_book, color: AppColors.primary),
-                label: 'Katalog',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.book_outlined),
-                selectedIcon: Icon(Icons.book, color: AppColors.primary),
-                label: 'Pinjaman',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outlined),
-                selectedIcon: Icon(Icons.person, color: AppColors.primary),
-                label: 'Profil',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/dependency_injection/injection_container.dart';
 import 'core/routes/app_router.dart';
+import 'core/theme/app_effects.dart';
 import 'core/theme/app_theme.dart';
 import 'domain/repositories/notification_repository.dart';
 import 'domain/usecases/notification_usecases.dart';
@@ -36,6 +37,12 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             routerConfig: router,
             debugShowCheckedModeBanner: false,
+            builder: (context, child) {
+              return NoiseOverlay(
+                opacity: 0.03,
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
           );
         },
       ),

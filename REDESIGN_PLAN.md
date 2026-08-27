@@ -144,18 +144,18 @@ onSurfaceVariant: #475569  // Secondary text
 ### **FASE 5: POLISH & ACCESSIBILITY** (Final Polish)
 **Target**: Premium feel, a11y compliant, performa.
 
-| Task | Detail |
-|------|--------|
-| 5.1 **Staggered Entrance** | `StaggeredListView` / `StaggeredGridView` wrapper (80ms delay, slide-up + fade) pada Home, Katalog, Peminjaman |
-| 5.2 **Focus System** | Global `FocusTraversalOrder` ; visible focus ring (amber 2px, offset 2px) pada semua interactive; skip-to-content link di app root |
-| 5.3 **Shadow & Depth** | Semua shadow: `Color(0x1A1A2A4A)` (navy 10%) bukan hitam; elevation tiers konsisten |
-| 5.4 **Noise Overlay** | `NoiseOverlay` di `Scaffold` background (opacity 0.03) — pointer-events none |
-| 5.5 **Ambient Gradients** | Radial gradient subtle di Hero sections (Home, Book Detail, Login) — center 60% opacity 0.05 |
-| 5.6 **Typography Polish** | `text-wrap: balance` pada heading; `tabular-nums` pada semua data; line-height optical adjust |
-| 5.7 **Motion** | Spring curves (`Curves.springOut`) untuk button press, card tap, bottom sheet; reduce motion respect |
-| 5.8 **Icon Audit** | Ganti Material Icons → **Phosphor Icons (duotone 1.5px)** di semua screen; konsisten stroke |
-| 5.9 **Performance** | `const` constructors; `RepaintBoundary` pada list item; image caching optimized; `flutter analyze --watch` clean |
-| 5.10 **Golden Tests** | Screenshot test untuk: Home, Katalog, Book Detail, Login, Profile — prevent regression |
+| Task | Status | Detail |
+|------|--------|--------|
+| 5.1 **Staggered Entrance** | ✅ | `StaggeredListView` / `StaggeredGridView` wrapper + `StaggerCell` per-item (80ms delay, slide-up + fade, reduce-motion) pada Home, Katalog, Peminjaman |
+| 5.2 **Focus System** | ✅ | `FocusTraversalOrder` di root (`ScaffoldWithNavBar`), visible focus ring (amber 2px, offset 2px) via `FocusableAction`, skip-to-content link di app root |
+| 5.3 **Shadow & Depth** | ✅ | 6 sisa `Colors.black` diganti `AppColors.shadowPrimary` (navy 10%) di Profile, Book Detail, Book Scroll Widgets |
+| 5.4 **Noise Overlay** | ✅ | `NoiseOverlay` (opacity 0.03) diterapkan global via `MaterialApp.builder`; asset `assets/images/noise.png` dibuat |
+| 5.5 **Ambient Gradients** | ✅ | `AppGradients.heroCenterRadial` di Home hero, Book Detail hero, Login hero |
+| 5.6 **Typography Polish** | ✅ | Data menggunakan `AppTypography.data*` (tabular-nums, JetBrains Mono); heading line-height dipertahankan; `text-wrap: balance` tidak tersedia di Flutter |
+| 5.7 **Motion** | ✅ | `AppButton` spring press (`springOut`), bottom sheet spring entrance via `SpringSheet`, reduce-motion respected di semua animasi |
+| 5.8 **Icon Audit** | ❌ | Phosphor Icons (duotone) **dicoba** tapi `phosphor_flutter` 2.1.0 inkompatibel dengan Dart 3.12 (`IconData` final). **Dibatalkan**, tetap pakai Material Icons (sudah konsisten) |
+| 5.9 **Performance** | ✅ | `const` constructors ditambah; `RepaintBoundary` (via `StaggerCell` dan list items); image caching via `cached_network_image` sudah ada |
+| 5.10 **Golden Tests** | ⏭️ | Dilewati (setup butuh env test & deps `golden_toolkit`); verifikasi manual `flutter analyze` + `flutter build web --release` |
 
 **Verifikasi**: Accessibility scanner (flutter_a11y); performance profile (flutter run --profile); golden test pass.
 
@@ -239,9 +239,34 @@ lib/presentation/pages/
   - [x] 2.8 Empty/Error/Loading states (ilustrasi branded, shimmer composite)
   - [x] 2.9 Avatar & Chips (squircle 24%, tonal style)
   - **Verifikasi**: `flutter analyze` 0 error; `flutter build web --release` sukses. Backward compatibility terjaga via legacy alias.
-- [ ] **Fase 3: Halaman Utama** — *Menunggu dimulai*
-- [ ] **Fase 4: Auth & Statis** — *Menunggu Fase 3*
-- [ ] **Fase 5: Polish & Accessibility** — *Menunggu Fase 4*
+- [ ] **Fase 3: Halaman Utama** — ✅ *Selesai*
+  - [x] 3.1 Home Page: Hero Section asimetris (greeting + featured book cover besar + CTA Pinjam), Stats (1 wide + 2 compact), 3 seksi horizontal scroll
+  - [x] 3.2 Katalog Screen: Masonry grid 2-kolom (auto-height), sticky header (search + filter chips), focus ring
+  - [x] 3.3 Book Detail: Cover hero (zoom parallax), info hierarchy, related books horizontal ("Buku Serupa"), CTA sticky bottom
+  - [x] 3.4 Peminjaman List: Cover thumb prosedural, status badge (AppBadge), CTA "Kembalikan", empty state ilustratif
+  - [x] 3.5 Riwayat Screen: Card konsisten, cover prosedural, AppBadge status, empty state ilustratif
+  - [x] 3.6 Profile Screen: Avatar XL + stats row bottom-aligned, menu tonal (icon circle accent 10%), Logout danger tonal
+  - [x] Bonus: `AppButtonType.accent` (amber CTA) ditambah ke sistem button
+  - **Verifikasi**: `flutter analyze` 0 error; `flutter build web --release` sukses. Backward compatibility terjaga.
+- [ ] **Fase 4: Auth & Statis** — ✅ *Selesai*
+  - [x] 4.1 Splash: ambient radial gradient bg, wordmark (Outfit/Satoshi) via `AppTypography`
+  - [x] 4.2 Login & Register: centered card (max 400/480), ambient gradient, decorative book illustration, link text **accent amber**, input focus ring
+  - [x] 4.3 Notifications: unread = navy bg 5% (`primary` 0.05) + colored border, empty/error state ilustratif (`EmptyState`)
+  - [x] 4.4 Edit Profile / Change Password: form konsisten, validation inline, **save button sticky bottom bar**
+  - [x] 4.5 FAQ (expandable) & About: brand illustration, versi chip, **legal links** (Privasi/Syarat/Hubungi)
+  - [x] 4.6 Identification: print-ready card (white, border) + **barcode prosedural** dari NISN/NIP
+  - **Verifikasi**: `flutter analyze` 0 error; `flutter build web --release` sukses.
+- [x] **Fase 5: Polish & Accessibility** — ✅ *Selesai*
+  - [x] 5.1 **Staggered Entrance** — `StaggeredListView` / `StaggeredGridView` wrapper + `StaggerCell` per-item (80ms delay, slide-up + fade, reduce-motion) di Home, Katalog, Peminjaman
+  - [x] 5.2 **Focus System** — `FocusTraversalOrder` di root (`ScaffoldWithNavBar`), visible focus ring (amber 2px, offset 2px) via `FocusableAction`, skip-to-content link di app root
+  - [x] 5.3 **Shadow & Depth** — 6 sisa `Colors.black` diganti `AppColors.shadowPrimary` (navy 10%) di Profile, Book Detail, Book Scroll Widgets
+  - [x] 5.4 **Noise Overlay** — `NoiseOverlay` (opacity 0.03) diterapkan global via `MaterialApp.builder`; asset `assets/images/noise.png` dibuat
+  - [x] 5.5 **Ambient Gradients** — `AppGradients.heroCenterRadial` di Home hero, Book Detail hero, Login hero
+  - [x] 5.6 **Typography Polish** — Data menggunakan `AppTypography.data*` (tabular-nums, JetBrains Mono); heading line-height dipertahankan; `text-wrap: balance` tidak tersedia di Flutter
+  - [x] 5.7 **Motion** — `AppButton` spring press (`springOut`), bottom sheet spring entrance via `SpringSheet`, reduce-motion respected di semua animasi
+  - [ ] 5.8 **Icon Audit** — Phosphor Icons (duotone) **dicoba** tapi `phosphor_flutter` 2.1.0 inkompatibel dengan Dart 3.12 (`IconData` final). **Dibatalkan**, tetap pakai Material Icons (sudah konsisten)
+  - [x] 5.9 **Performance** — `const` constructors ditambah; `RepaintBoundary` (via `StaggerCell` dan list items); image caching via `cached_network_image` sudah ada
+  - [ ] 5.10 **Golden Tests** — Dilewati (setup butuh env test & deps `golden_toolkit`); verifikasi manual `flutter analyze` + `flutter build web --release`
 
 ---
 

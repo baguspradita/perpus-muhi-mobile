@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_effects.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -22,41 +23,62 @@ class AboutScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: AppSpacing.xl),
-            // Logo & App Name
+            // Brand illustration + App Name
             Center(
               child: Container(
-                width: 100,
-                height: 100,
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
+                  gradient: AppGradients.buttonPrimary,
                   borderRadius: AppRadius.rXl,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadowPrimary,
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                  boxShadow: AppGradients.elevation3,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.heroCenterRadial(
+                              primaryColor: Colors.white.withValues(alpha: 0.03),
+                              accentColor: AppColors.accent.withValues(alpha: 0.04),
+                              radius: 0.8,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.auto_stories,
+                      size: 60,
+                      color: Colors.white,
                     ),
                   ],
-                ),
-                child: ClipRRect(
-                  borderRadius: AppRadius.rXl,
-                  child: Image.asset(
-                    'assets/images/logo-muhi.png',
-                    fit: BoxFit.cover,
-                  ),
                 ),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Perpustakaan Muhi',
-              style: AppTypography.headlineLgMobile,
+              style: AppTypography.headlineLg,
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Versi 1.0.0',
-              style: AppTypography.bodySm.copyWith(
-                color: AppColors.outline,
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.accentContainer,
+                borderRadius: AppRadius.badge,
+              ),
+              child: Text(
+                'Versi 1.0.0',
+                style: AppTypography.labelSm.copyWith(
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -98,17 +120,17 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _buildFeatureItem(
-                    Icons.search,
+                    Icons.search_rounded,
                     'Katalog Buku',
                     'Cari dan jelajahi koleksi buku perpustakaan',
                   ),
                   _buildFeatureItem(
-                    Icons.book,
+                    Icons.menu_book,
                     'Peminjaman',
                     'Pinjam buku secara online dan kelola riwayat',
                   ),
                   _buildFeatureItem(
-                    Icons.history,
+                    Icons.history_outlined,
                     'Riwayat',
                     'Lihat riwayat peminjaman dan pengembalian',
                   ),
@@ -140,6 +162,35 @@ class AboutScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xl),
 
+            // Legal links
+            _buildCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Legal',
+                    style: AppTypography.headlineMd,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  _buildLegalRow(
+                    Icons.policy_outlined,
+                    'Kebijakan Privasi',
+                  ),
+                  const Divider(height: AppSpacing.lg, thickness: 1),
+                  _buildLegalRow(
+                    Icons.description_outlined,
+                    'Syarat & Ketentuan',
+                  ),
+                  const Divider(height: AppSpacing.lg, thickness: 1),
+                  _buildLegalRow(
+                    Icons.contact_support_outlined,
+                    'Hubungi Kami',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+
             // Copyright
             Text(
               '© 2025 SMK Muhi. Hak Cipta Dilindungi.',
@@ -149,6 +200,45 @@ class AboutScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegalRow(IconData icon, String title) {
+    return InkWell(
+      onTap: () {
+        // Placeholder: legal pages coming soon
+      },
+      borderRadius: AppRadius.rMd,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.accentContainer,
+                borderRadius: AppRadius.rMd,
+              ),
+              child: Icon(icon, color: AppColors.accent, size: 18),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Text(
+                title,
+                style: AppTypography.bodyLg.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: AppColors.outline,
+              size: 18,
+            ),
           ],
         ),
       ),

@@ -1,16 +1,20 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/app_effects.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../domain/entities/peminjaman_entity.dart';
 import '../../providers/peminjaman_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_shimmer.dart';
+import '../../widgets/app_badge.dart';
 import '../../widgets/page_header.dart';
+import '../../widgets/procedural_book_cover.dart';
 
 class RiwayatScreen extends ConsumerStatefulWidget {
   const RiwayatScreen({super.key});
@@ -34,45 +38,49 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PageHeader(
-                  title: 'Riwayat Peminjaman',
-                  subtitle: 'Lihat history peminjaman Anda',
-                ),
-                const SizedBox(height: AppSpacing.md),
-              ],
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              color: AppColors.surface,
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PageHeader(
+                    title: 'Riwayat Peminjaman',
+                    subtitle: 'Lihat history peminjaman Anda',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Expanded(
-            child: peminjamanState.isLoading
-                ? _buildLoadingState()
-                : peminjamanState.errorMessage.isNotEmpty
-                    ? _buildErrorState(peminjamanState.errorMessage)
-                    : _buildRiwayatList(peminjamanState.peminjamanRiwayat),
-          ),
+          if (peminjamanState.isLoading)
+            SliverToBoxAdapter(child: _buildLoadingState())
+          else if (peminjamanState.errorMessage.isNotEmpty)
+            SliverToBoxAdapter(child: _buildErrorState(peminjamanState.errorMessage))
+          else
+            _buildRiwayatSliver(peminjamanState.peminjamanRiwayat),
         ],
       ),
     );
   }
 
   Widget _buildLoadingState() {
-    return ListView.builder(
+    return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: 4,
-      itemBuilder: (_, __) => const Padding(
-        padding: EdgeInsets.only(bottom: AppSpacing.md),
-        child: LoadingShimmer(
-          height: 100,
-          width: double.infinity,
-          borderRadius: 16,
+      child: Column(
+        children: List.generate(
+          4,
+          (_) => const Padding(
+            padding: EdgeInsets.only(bottom: AppSpacing.md),
+            child: LoadingShimmer(
+              height: 100,
+              width: double.infinity,
+              borderRadius: 16,
+            ),
+          ),
         ),
       ),
     );
@@ -95,31 +103,31 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
     );
   }
 
-  Widget _buildRiwayatList(List<PeminjamanEntity> riwayat) {
+  Widget _buildRiwayatSliver(List<PeminjamanEntity> riwayat) {
     if (riwayat.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: EmptyState(
-            icon: Icons.history_outlined,
-            title: 'Belum Ada Riwayat',
-            subtitle: 'Riwayat peminjaman akan muncul di sini.',
-            actionLabel: 'Muat Ulang',
-            onAction: () {
-              ref.read(peminjamanProvider.notifier).loadAllData();
-            },
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: EmptyState(
+              icon: Icons.history_outlined,
+              title: 'Belum Ada Riwayat',
+              subtitle: 'Riwayat peminjaman akan muncul di sini.',
+              actionLabel: 'Muat Ulang',
+              onAction: () {
+                ref.read(peminjamanProvider.notifier).loadAllData();
+              },
+            ),
           ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => _buildRiwayatCard(context, riwayat[index]),
+        childCount: riwayat.length,
       ),
-      itemCount: riwayat.length,
-      itemBuilder: (context, index) => _buildRiwayatCard(context, riwayat[index]),
     );
   }
 
@@ -127,98 +135,115 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
     final isReturned = peminjaman.status.toLowerCase() == 'dikembalikan' ||
         peminjaman.tglKembali != null;
 
+    final detail = peminjaman.details.isNotEmpty ? peminjaman.details.first : null;
+    final judul = detail?.judulBuku ?? 'Buku Tidak Diketahui';
+    final penulis = detail?.penulis ?? 'Penulis Tidak Diketahui';
+    final coverUrl = detail?.coverUrl;
+    final bookId = detail?.bukuId ?? peminjaman.id;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xs,
+      ),
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: AppRadius.rMd,
-        border: Border.all(
-          color: isReturned ? AppColors.successLight : AppColors.warningLight,
-          style: BorderStyle.solid,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.card,
+        boxShadow: AppGradients.elevation2,
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: isReturned ? AppColors.successLight : AppColors.warningLight,
+      child: InkWell(
+        onTap: () => _showRiwayatDetail(context, peminjaman),
+        borderRadius: AppRadius.card,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              ClipRRect(
                 borderRadius: AppRadius.rMd,
+                child: SizedBox(
+                  width: 56,
+                  height: 76,
+                  child: coverUrl != null && coverUrl.isNotEmpty
+                      ? Image.network(
+                          coverUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildCoverPlaceholder(bookId, judul),
+                        )
+                      : _buildCoverPlaceholder(bookId, judul),
+                ),
               ),
-              child: Icon(
-                isReturned ? Icons.check_circle : Icons.book,
-                color: isReturned ? AppColors.success : AppColors.warning,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    peminjaman.userName,
-                    style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglPinjam) ?? DateTime.now()),
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  if (peminjaman.tglKembali != null) ...[
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      'Dikembalikan: ${AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglKembali!) ?? DateTime.now())}',
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                  ],
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: isReturned ? AppColors.successLight : AppColors.warningLight,
-                      borderRadius: AppRadius.rSm,
-                    ),
-                    child: Text(
-                      isReturned ? 'Dikembalikan' : peminjaman.status,
-                      style: AppTypography.bodySmall.copyWith(
-                        color: isReturned ? AppColors.success : AppColors.warning,
+                      peminjaman.userName,
+                      style: AppTypography.bodyLg.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  if (peminjaman.denda != null && peminjaman.denda! > 0) ...[
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'Denda: Rp ${peminjaman.denda}',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.error,
-                        fontWeight: FontWeight.w600,
+                      AppDateUtils.formatDate(
+                          DateTime.tryParse(peminjaman.tglPinjam) ?? DateTime.now()),
+                      style: AppTypography.bodySm.copyWith(
+                        color: AppColors.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.xs),
+                    if (peminjaman.tglKembali != null) ...[
+                      Text(
+                        'Dikembalikan: ${AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglKembali!) ?? DateTime.now())}',
+                        style: AppTypography.bodySm.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                    ],
+                    Row(
+                      children: [
+                        AppBadge(
+                          text: isReturned ? 'Dikembalikan' : peminjaman.status,
+                          variant: isReturned
+                              ? AppBadgeVariant.success
+                              : AppBadgeVariant.warning,
+                        ),
+                        if (peminjaman.denda != null && peminjaman.denda! > 0) ...[
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Denda: ${_formatCurrency(peminjaman.denda!)}',
+                            style: AppTypography.bodySm.copyWith(
+                              color: AppColors.danger,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
-                ],
+                ),
               ),
-            ),
-            IconButton(
-              onPressed: () => _showRiwayatDetail(context, peminjaman),
-              icon: const Icon(Icons.visibility_outlined),
-              tooltip: 'Lihat Detail',
-            ),
-          ],
+              IconButton(
+                onPressed: () => _showRiwayatDetail(context, peminjaman),
+                icon: const Icon(Icons.visibility_rounded),
+                tooltip: 'Lihat Detail',
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCoverPlaceholder(int id, String title) {
+    return ProceduralBookCover(
+      title: title,
+      author: '',
+      bookId: id,
+      fit: BoxFit.cover,
     );
   }
 
@@ -235,11 +260,14 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
             children: [
               _buildDetailRow('ID', peminjaman.id.toString()),
               _buildDetailRow('Peminjam', peminjaman.userName),
-              _buildDetailRow('Tanggal Pinjam', AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglPinjam) ?? DateTime.now())),
-              _buildDetailRow('Jatuh Tempo', AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglJatuhTempo) ?? DateTime.now())),
+              _buildDetailRow('Tanggal Pinjam',
+                  AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglPinjam) ?? DateTime.now())),
+              _buildDetailRow('Jatuh Tempo',
+                  AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglJatuhTempo) ?? DateTime.now())),
               _buildDetailRow('Status', peminjaman.status),
               if (peminjaman.tglKembali != null)
-                _buildDetailRow('Tanggal Kembali', AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglKembali!) ?? DateTime.now())),
+                _buildDetailRow('Tanggal Kembali',
+                    AppDateUtils.formatDate(DateTime.tryParse(peminjaman.tglKembali!) ?? DateTime.now())),
               if (peminjaman.denda != null && peminjaman.denda! > 0)
                 _buildDetailRow('Denda', 'Rp ${peminjaman.denda}'),
               const SizedBox(height: AppSpacing.md),
@@ -249,7 +277,7 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
                   padding: const EdgeInsets.only(top: AppSpacing.xs),
                   child: Row(
                     children: [
-                      const Icon(Icons.book, size: 16),
+                      const Icon(Icons.menu_book, size: 16),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
@@ -282,11 +310,22 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
+            child: Text(
+              label,
+              style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceVariant),
+            ),
           ),
           Expanded(child: Text(value, style: AppTypography.bodyMedium)),
         ],
       ),
     );
+  }
+
+  String _formatCurrency(int value) {
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(value);
   }
 }

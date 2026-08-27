@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/routes/route_names.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_effects.dart';
 import '../providers/auth_provider.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
@@ -83,67 +85,79 @@ class _SplashPageState extends ConsumerState<SplashPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primary,
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FadeTransition(
-                  opacity: _logoFade,
-                  child: Image.asset(
-                    'assets/images/logo-muhi.png',
-                    height: 92,
-                    fit: BoxFit.contain,
+      body: Stack(
+        children: [
+          // Ambient radial gradient overlay
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: AppGradients.heroCenterRadial(
+                    primaryColor: Colors.white.withValues(alpha: 0.03),
+                    accentColor: AppColors.accent.withValues(alpha: 0.02),
+                    radius: 0.8,
                   ),
                 ),
-                const SizedBox(height: 18),
-                SlideTransition(
-                  position: _textSlide,
-                  child: FadeTransition(
-                    opacity: _logoFade,
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Perpustakaan Muhi',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 0.2,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Sistem Manajemen Buku',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.white.withAlpha(204),
-                            letterSpacing: 1.2,
-                            height: 1.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 42),
-                FadeTransition(
-                  opacity: _dotsFade,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(3, (i) => _LoadingDot(i: i)),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FadeTransition(
+                      opacity: _logoFade,
+                      child: Image.asset(
+                        'assets/images/logo-muhi.png',
+                        height: 92,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SlideTransition(
+                      position: _textSlide,
+                      child: FadeTransition(
+                        opacity: _logoFade,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Perpustakaan Muhi',
+                              textAlign: TextAlign.center,
+                              style: AppTypography.displaySm.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Sistem Manajemen Buku',
+                              textAlign: TextAlign.center,
+                              style: AppTypography.bodySm.copyWith(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 42),
+                    FadeTransition(
+                      opacity: _dotsFade,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(3, (i) => _LoadingDot(i: i)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

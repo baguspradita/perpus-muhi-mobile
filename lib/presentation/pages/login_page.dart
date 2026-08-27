@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/validators.dart';
+import '../../core/theme/app_effects.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
@@ -87,46 +88,64 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.xl,
+        child: Stack(
+          children: [
+            // Ambient gradient backdrop
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.heroCenterRadial(
+                      primaryColor: AppColors.primary.withValues(alpha: 0.03),
+                      accentColor: AppColors.accent.withValues(alpha: 0.03),
+                      radius: 0.9,
+                    ),
                   ),
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 400),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _buildHeader(),
-                                const SizedBox(height: AppSpacing.xxxl),
-                                _buildForm(authState),
-                                const SizedBox(height: AppSpacing.xxl),
-                                _buildFooter(),
-                              ],
+                ),
+              ),
+            ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xl,
+                        vertical: AppSpacing.xl,
+                      ),
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 400),
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    _buildHeader(),
+                                    const SizedBox(height: AppSpacing.xxxl),
+                                    _buildForm(authState),
+                                    const SizedBox(height: AppSpacing.xxl),
+                                    _buildFooter(),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -135,46 +154,36 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Widget _buildHeader() {
     return Column(
       children: [
+        // Logo asset in rounded card
         Container(
-          width: 76,
-          height: 76,
+          width: 112,
+          height: 112,
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: AppRadius.rMd,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            color: AppColors.surfaceContainerLowest,
+            borderRadius: AppRadius.rXl,
+            boxShadow: AppGradients.elevation2,
           ),
-          child: ClipRRect(
-            borderRadius: AppRadius.rMd,
-            child: Image.asset(
-              'assets/images/logo-muhi.png',
-              fit: BoxFit.cover,
-              width: 76,
-              height: 76,
-            ),
+          child: Image.asset(
+            'assets/images/logo-muhi.png',
+            fit: BoxFit.contain,
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
           'Selamat Datang',
-          style: AppTypography.heading1.copyWith(
-            fontSize: 26,
+          style: AppTypography.headlineLg.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
-            color: AppColors.textPrimary,
+            color: AppColors.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Masuk ke Perpustakaan Muhi',
-          style: AppTypography.bodyLarge.copyWith(
-            color: AppColors.textSecondary,
+          style: AppTypography.bodyLg.copyWith(
+            color: AppColors.onSurfaceVariant,
             height: 1.6,
           ),
           textAlign: TextAlign.center,
@@ -201,12 +210,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
           hintText: 'Masukkan kata sandi',
           controller: _passwordController,
           obscureText: _isPasswordHidden,
-          prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+          prefixIcon: const Icon(Icons.lock_rounded, size: 20),
           suffixIcon: IconButton(
             icon: Icon(
               _isPasswordHidden
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined,
+                  ? Icons.visibility_rounded
+                  : Icons.visibility_off_rounded,
               size: 20,
             ),
             onPressed: () {
@@ -248,7 +257,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.error_outline_rounded,
+              Icons.error_outline,
               color: AppColors.error,
               size: 18,
             ),
@@ -272,7 +281,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         Text(
           'Belum punya akun? ',
           style: AppTypography.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: AppColors.onSurfaceVariant,
           ),
         ),
         TextButton(
@@ -288,8 +297,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
           child: Text(
             'Daftar Sekarang',
             style: AppTypography.bodyMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
+              color: AppColors.accent,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),

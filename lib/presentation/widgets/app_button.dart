@@ -12,6 +12,7 @@ import '../../core/theme/app_motion.dart';
 /// - Text: transparent background, navy text
 enum AppButtonType {
   filled,
+  accent,
   tonal,
   text,
   outline,
@@ -63,7 +64,7 @@ class _AppButtonState extends State<AppButton>
       end: AppMotion.pressScale,
     ).animate(CurvedAnimation(
       parent: _pressController,
-      curve: AppMotion.pressDown,
+      curve: AppMotion.springOut,
     ));
   }
 
@@ -77,6 +78,8 @@ class _AppButtonState extends State<AppButton>
     switch (widget.type) {
       case AppButtonType.filled:
         return AppColors.primary;
+      case AppButtonType.accent:
+        return AppColors.accent;
       case AppButtonType.tonal:
         return AppColors.primaryContainer;
       case AppButtonType.text:
@@ -92,6 +95,8 @@ class _AppButtonState extends State<AppButton>
     switch (widget.type) {
       case AppButtonType.filled:
         return AppColors.onPrimary;
+      case AppButtonType.accent:
+        return AppColors.onAccent;
       case AppButtonType.tonal:
         return AppColors.onPrimaryContainer;
       case AppButtonType.text:
@@ -123,8 +128,9 @@ class _AppButtonState extends State<AppButton>
 
   @override
   Widget build(BuildContext context) {
+    final scale = context.reduceMotion ? 1.0 : _scaleAnim.value;
     return AnimatedScale(
-      scale: _scaleAnim.value,
+      scale: scale,
       duration: AppMotion.fast,
       child: AnimatedContainer(
         duration: AppMotion.fast,
@@ -167,11 +173,13 @@ class _AppButtonState extends State<AppButton>
                 ),
                 textStyle: widget.type == AppButtonType.filled
                     ? AppTypography.buttonMd.copyWith(color: AppColors.onPrimary)
-                    : widget.type == AppButtonType.tonal
-                        ? AppTypography.buttonMd.copyWith(color: AppColors.onPrimaryContainer)
-                        : widget.type == AppButtonType.danger
-                            ? AppTypography.buttonMd.copyWith(color: AppColors.onDanger)
-                            : AppTypography.buttonMd,
+                    : widget.type == AppButtonType.accent
+                        ? AppTypography.buttonMd.copyWith(color: AppColors.onAccent)
+                        : widget.type == AppButtonType.tonal
+                            ? AppTypography.buttonMd.copyWith(color: AppColors.onAccentContainer)
+                            : widget.type == AppButtonType.danger
+                                ? AppTypography.buttonMd.copyWith(color: AppColors.onDanger)
+                                : AppTypography.buttonMd,
               ),
               child: widget.isLoading
                   ? SizedBox(

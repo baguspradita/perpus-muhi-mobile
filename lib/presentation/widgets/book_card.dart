@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_radius.dart';
@@ -197,7 +197,12 @@ class _BookCardState extends State<BookCard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        if (widget.loanStatus != null)
+                        if (widget.loanStatus == 'Dipinjam Saya')
+                          AppBadge(
+                            text: widget.loanStatus!,
+                            variant: AppBadgeVariant.info,
+                          )
+                        else if (widget.loanStatus != null)
                           AppBadge(
                             text: widget.loanStatus!,
                             variant: AppBadgeVariant.warning,
@@ -230,7 +235,10 @@ class _BookCardState extends State<BookCard> {
     String text;
     AppBadgeVariant variant;
 
-    if (widget.loanStatus != null) {
+    if (widget.loanStatus == 'Dipinjam Saya') {
+      text = widget.loanStatus!;
+      variant = AppBadgeVariant.info;
+    } else if (widget.loanStatus != null) {
       text = widget.loanStatus!;
       variant = AppBadgeVariant.warning;
     } else if (widget.isAvailable) {

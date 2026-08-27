@@ -139,9 +139,9 @@ class ProceduralBookCover extends StatelessWidget {
     final icons = [
       Icons.menu_book,
       Icons.science,
-      Icons.history_edu,
+      Icons.library_books,
       Icons.auto_stories,
-      Icons.school,
+      Icons.school_rounded,
       Icons.lightbulb,
     ];
     return icons[bookId % icons.length];

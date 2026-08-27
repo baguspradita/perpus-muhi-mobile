@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:intl/intl.dart';
 
@@ -8,11 +9,17 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/app_effects.dart';
+import '../../../core/routes/route_names.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../domain/entities/buku_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/peminjaman_provider.dart';
+import '../../providers/dashboard_buku_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/book_card.dart';
+import '../../widgets/section_header.dart';
+import '../../widgets/procedural_book_cover.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
   final BukuEntity book;
@@ -23,13 +30,32 @@ class BookDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<BookDetailScreen> createState() => _BookDetailScreenState();
 }
 
-class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
+class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
+    with SingleTickerProviderStateMixin {
   bool _isDescriptionExpanded = false;
   static const int _descriptionMaxLines = 4;
+  late AnimationController _staggerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _staggerController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _staggerController.forward();
+  }
+
+  @override
+  void dispose() {
+    _staggerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isAvailable = (widget.book.stokTersedia ?? 0) > 0 && widget.book.status == 'aktif';
+    final relatedBooks = _getRelatedBooks(ref);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -69,7 +95,11 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                   // Detail Card
                   _buildDetailCard(),
 
-                  const SizedBox(height: AppSpacing.xl + AppSpacing.md),
+                  const SizedBox(height: AppSpacing.xl),
+
+                  if (relatedBooks.isNotEmpty) _buildRelatedSection(context, relatedBooks),
+
+                  const SizedBox(height: AppSpacing.xl + AppSpacing.lg),
                 ],
               ),
             ),
@@ -80,6 +110,64 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       // Sticky Action Bar
       bottomNavigationBar: isAvailable ? _buildActionBar() : _buildUnavailableBar(),
     );
+  }
+
+  Widget _buildRelatedSection(BuildContext context, List<BukuEntity> books) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(
+          title: 'Buku Serupa',
+          actionLabel: 'Lihat Semua',
+          onAction: () => context.push(RouteNames.katalog),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 210,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(right: AppSpacing.md),
+            itemCount: books.length,
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+            itemBuilder: (context, index) {
+              final book = books[index];
+              return SizedBox(
+                width: 150,
+                child: BookCard(
+                  title: book.judul,
+                  author: book.penulis,
+                  coverUrl: book.coverUrl,
+                  coverColor: _getCoverColor(book.id),
+                  isAvailable: (book.stokTersedia ?? 0) > 0,
+                  bookId: book.id,
+                  isGridMode: true,
+                  heroTag: book.id,
+                  onTap: () => context.push(
+                    RouteNames.bookDetail,
+                    extra: book,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<BukuEntity> _getRelatedBooks(WidgetRef ref) {
+    final state = ref.watch(dashboardBukuProvider);
+    final pool = [...state.bukuPopuler, ...state.bukuBaru, ...state.rekomendasiBuku];
+    final seen = <int>{};
+    final result = <BukuEntity>[];
+    for (final b in pool) {
+      if (b.id == widget.book.id) continue;
+      if (seen.contains(b.id)) continue;
+      seen.add(b.id);
+      result.add(b);
+      if (result.length >= 8) break;
+    }
+    return result;
   }
 
   Widget _buildHeroCover() {
@@ -93,6 +181,21 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         Container(
           decoration: BoxDecoration(
             color: _getCoverColor(widget.book.id).withOpacity(0.15),
+          ),
+        ),
+
+        // Subtle radial ambient gradient
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: AppGradients.heroCenterRadial(
+                  primaryColor: AppColors.primary.withValues(alpha: 0.06),
+                  accentColor: AppColors.accent.withValues(alpha: 0.03),
+                  radius: 0.85,
+                ),
+              ),
+            ),
           ),
         ),
 
@@ -137,25 +240,12 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
 
   Widget _buildCoverPlaceholder() {
     return Center(
-      child: Container(
+      child: ProceduralBookCover(
+        title: widget.book.judul,
+        author: widget.book.penulis,
+        bookId: widget.book.id,
         width: 140,
         height: 190,
-        decoration: BoxDecoration(
-          color: _getCoverColor(widget.book.id),
-          borderRadius: AppRadius.rMd,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.12),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Icon(
-          Icons.menu_book_rounded,
-          size: 64,
-          color: Colors.white.withOpacity(0.25),
-        ),
       ),
     );
   }
@@ -178,7 +268,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           runSpacing: AppSpacing.xs,
           children: [
             _MetaChip(
-              icon: Icons.person_outline,
+              icon: Icons.person,
               label: widget.book.penulis,
               onTap: () => _filterByAuthor(widget.book.penulis),
             ),
@@ -272,7 +362,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           ),
           _DetailDivider(),
           _DetailRow(
-            icon: Icons.event_outlined,
+            icon: Icons.calendar_today_outlined,
             label: 'Tahun Terbit',
             value: widget.book.tahunTerbit.toString(),
           ),
@@ -334,7 +424,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         color: AppColors.surfaceContainerLowest,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AppColors.shadowPrimary.withValues(alpha: 0.6),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -370,7 +460,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         child: Row(
           children: [
             Icon(
-              Icons.info_outline_rounded,
+              Icons.info_outline,
               color: AppColors.warning,
               size: 20,
             ),
@@ -673,7 +763,7 @@ class _RatingChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star_rounded, size: 14, color: AppColors.warning),
+          const Icon(Icons.star, size: 14, color: AppColors.warning),
           const SizedBox(width: 4),
           Text(
             rating.toStringAsFixed(1),

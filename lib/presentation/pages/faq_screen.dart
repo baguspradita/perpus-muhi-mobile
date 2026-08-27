@@ -32,7 +32,7 @@ class FaqScreen extends StatelessWidget {
             child: Column(
               children: [
                 Icon(
-                  Icons.help_outline_rounded,
+                  Icons.help_outline,
                   size: 48,
                   color: AppColors.primary,
                 ),

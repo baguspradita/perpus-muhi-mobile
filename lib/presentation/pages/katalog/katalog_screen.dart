@@ -8,15 +8,17 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/app_effects.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../domain/entities/buku_entity.dart';
 import '../../providers/katalog_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/app_search_bar.dart';
-import '../../widgets/book_card.dart';
 import '../../widgets/category_chips.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_shimmer.dart';
+import '../../widgets/procedural_book_cover.dart';
+import '../../widgets/staggered_list.dart';
 
 class KatalogScreen extends ConsumerStatefulWidget {
   const KatalogScreen({super.key});
@@ -45,9 +47,10 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
     setState(() => _currentSearch = value);
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      ref
-          .read(katalogProvider.notifier)
-          .loadData(search: value.isEmpty ? null : value, kategoriId: _selectedCategoryId);
+      ref.read(katalogProvider.notifier).loadData(
+            search: value.isEmpty ? null : value,
+            kategoriId: _selectedCategoryId,
+          );
     });
   }
 
@@ -59,10 +62,43 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Katalog'),
-        automaticallyImplyLeading: false,
-        actions: [
+      body: CustomScrollView(
+        slivers: [
+          // Hero header with title
+          SliverToBoxAdapter(
+            child: _buildHeader(),
+          ),
+          // Sticky search + filter chips
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _StickyFilterDelegate(
+              child: _buildStickyBar(katalogState, categories, selectedIndex),
+            ),
+          ),
+          // Content
+          if (katalogState.isLoading)
+            SliverToBoxAdapter(child: _buildLoadingState())
+          else if (katalogState.errorMessage.isNotEmpty)
+            SliverToBoxAdapter(child: _buildErrorState(katalogState.errorMessage))
+          else
+            _buildMasonrySliver(katalogState),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Katalog Buku', style: AppTypography.headlineLg),
           Consumer(
             builder: (context, ref, _) {
               final unreadCount = ref.watch(notificationProvider).unreadBadge;
@@ -81,7 +117,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: AppColors.error,
+                          color: AppColors.danger,
                           shape: BoxShape.circle,
                           border: Border.all(color: AppColors.surface, width: 2),
                         ),
@@ -102,65 +138,58 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
           ),
         ],
       ),
-      body: Column(
+    );
+  }
+
+  Widget _buildStickyBar(
+    KatalogState katalogState,
+    List<CategoryItem> categories,
+    int selectedIndex,
+  ) {
+    return Container(
+      color: AppColors.background,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
+      child: Column(
         children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              0,
-            ),
-            child: AppSearchBar(
-              hintText: 'Cari buku, penulis, atau ISBN...',
-              onChanged: _onSearchChanged,
-              onClear: () {
-                _debounceTimer?.cancel();
-                setState(() => _currentSearch = '');
-                ref
-                    .read(katalogProvider.notifier)
-                    .loadData(search: null, kategoriId: _selectedCategoryId);
-              },
-              isLoading: katalogState.isLoading,
-              prefixIcon: const Icon(
-                Icons.search,
-                color: AppColors.outline,
-                size: 20,
-              ),
+          AppSearchBar(
+            hintText: 'Cari buku, penulis, atau ISBN...',
+            onChanged: _onSearchChanged,
+            onClear: () {
+              _debounceTimer?.cancel();
+              setState(() => _currentSearch = '');
+              ref.read(katalogProvider.notifier).loadData(
+                    search: null,
+                    kategoriId: _selectedCategoryId,
+                  );
+            },
+            isLoading: katalogState.isLoading,
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: AppColors.outline,
+              size: 20,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          // Category Chips
           katalogState.isFiltersLoading
               ? _buildCategoryLoadingState()
               : CategoryChipsScroll(
                   categories: categories,
                   selectedIndex: selectedIndex,
                   onCategorySelected: (index) {
-                    final selectedCategoryId = index == 0
-                        ? null
-                        : categories[index].id;
+                    final selectedCategoryId =
+                        index == 0 ? null : categories[index].id;
                     setState(() => _selectedCategoryId = selectedCategoryId);
-                    ref
-                        .read(katalogProvider.notifier)
-                        .loadData(
-                          search: _currentSearch.isEmpty
-                              ? null
-                              : _currentSearch,
+                    ref.read(katalogProvider.notifier).loadData(
+                          search: _currentSearch.isEmpty ? null : _currentSearch,
                           kategoriId: selectedCategoryId,
                         );
                   },
                 ),
-          const SizedBox(height: AppSpacing.md),
-          // Book Grid
-          Expanded(
-            child: katalogState.isLoading
-                ? _buildLoadingState()
-                : katalogState.errorMessage.isNotEmpty
-                ? _buildErrorState(katalogState.errorMessage)
-                : _buildBookGrid(katalogState),
-          ),
         ],
       ),
     );
@@ -174,12 +203,12 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
         children: [
           const SizedBox(height: AppSpacing.lg),
           const CircularProgressIndicator(
-            color: AppColors.outline,
+            color: AppColors.accent,
             strokeWidth: 3,
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'Memuat buku lainnya...',
+            'Memuat buku...',
             style: AppTypography.bodySm.copyWith(color: AppColors.outline),
           ),
         ],
@@ -224,64 +253,197 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
     );
   }
 
-  Widget _buildBookGrid(KatalogState state) {
+  /// Masonry grid (2-column balanced) with auto height per card
+  Widget _buildMasonrySliver(KatalogState state) {
     if (state.bukuList.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: EmptyState(
-            icon: Icons.menu_book_outlined,
-            title: 'Belum Ada Buku',
-            subtitle: state.searchQuery.isNotEmpty
-                ? 'Tidak ada buku yang cocok dengan "${state.searchQuery}"'
-                : 'Data buku akan muncul di sini.',
-            actionLabel: state.searchQuery.isNotEmpty
-                ? 'Hapus Filter'
-                : 'Muat Ulang',
-            onAction: () {
-              ref
-                  .read(katalogProvider.notifier)
-                  .loadData(search: null, kategoriId: null);
-              setState(() {
-                _currentSearch = '';
-                _selectedCategoryId = null;
-              });
-            },
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: EmptyState(
+              icon: Icons.menu_book,
+              title: 'Belum Ada Buku',
+              subtitle: state.searchQuery.isNotEmpty
+                  ? 'Tidak ada buku yang cocok dengan "${state.searchQuery}"'
+                  : 'Data buku akan muncul di sini.',
+              actionLabel: state.searchQuery.isNotEmpty ? 'Hapus Filter' : 'Muat Ulang',
+              onAction: () {
+                ref.read(katalogProvider.notifier).loadData(
+                      search: null,
+                      kategoriId: null,
+                    );
+                setState(() {
+                  _currentSearch = '';
+                  _selectedCategoryId = null;
+                });
+              },
+            ),
           ),
         ),
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.md,
-        AppSpacing.md,
+    final books = state.bukuList;
+    final left = <_IndexedBook>[];
+    final right = <_IndexedBook>[];
+    double leftH = 0;
+    double rightH = 0;
+
+    for (var i = 0; i < books.length; i++) {
+      final book = books[i];
+      final h = _cardHeight(book);
+      if (leftH <= rightH) {
+        left.add(_IndexedBook(book, i));
+        leftH += h + AppSpacing.md;
+      } else {
+        right.add(_IndexedBook(book, i));
+        rightH += h + AppSpacing.md;
+      }
+    }
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.sm,
+          AppSpacing.md,
+          AppSpacing.lg,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                children: left
+                    .map((b) => _buildMasonryCard(b.book, b.index))
+                    .toList()
+                    .cast<Widget>(),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                children: right
+                    .map((b) => _buildMasonryCard(b.book, b.index))
+                    .toList()
+                    .cast<Widget>(),
+              ),
+            ),
+          ],
+        ),
       ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: AppSpacing.md,
-        mainAxisSpacing: AppSpacing.md,
-      ),
-      itemCount: state.bukuList.length,
-      itemBuilder: (context, index) {
-        final buku = state.bukuList[index];
-        return BookCard(
-          title: buku.judul,
-          author: buku.penulis,
-          coverUrl: buku.coverUrl,
-          coverColor: _getCoverColor(buku.id),
-          isAvailable: (buku.stokTersedia ?? 0) > 0,
-          onTap: () => context.push(
-            RouteNames.bookDetail,
-            extra: buku,
+    );
+  }
+
+  Widget _buildMasonryCard(BukuEntity book, int index) {
+    final cell = _masonryCardContent(book);
+    return StaggerCell(index: index, child: cell);
+  }
+
+  double _cardHeight(BukuEntity book) {
+    final coverHeights = [150.0, 172.0, 194.0, 216.0];
+    final cover = coverHeights[book.id % coverHeights.length];
+    return cover + 86; // approx info block height
+  }
+
+  Widget _masonryCardContent(BukuEntity book) {
+    final coverHeights = [150.0, 172.0, 194.0, 216.0];
+    final coverHeight = coverHeights[book.id % coverHeights.length];
+    final isAvailable = (book.stokTersedia ?? 0) > 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: GestureDetector(
+        onTap: () => context.push(RouteNames.bookDetail, extra: book),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerLowest,
+            borderRadius: AppRadius.card,
+            boxShadow: AppGradients.elevation2,
           ),
-          isGridMode: true,
-          heroTag: buku.id,
-        );
-      },
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  Hero(
+                    tag: 'book_cover_${book.id}',
+                    child: ProceduralBookCover(
+                      title: book.judul,
+                      author: book.penulis,
+                      bookId: book.id,
+                      height: coverHeight,
+                    ),
+                  ),
+                  Positioned(
+                    top: AppSpacing.sm,
+                    right: AppSpacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isAvailable
+                            ? AppColors.successContainer
+                            : AppColors.dangerContainer,
+                        borderRadius: AppRadius.badge,
+                      ),
+                      child: Text(
+                        isAvailable ? 'Tersedia' : 'Habis',
+                        style: AppTypography.labelSm.copyWith(
+                          color: isAvailable
+                              ? AppColors.onSuccessContainer
+                              : AppColors.onDangerContainer,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book.judul,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodyLg.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      book.penulis,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySm.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                    if (book.namaKategori != null) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        book.namaKategori!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.labelSm.copyWith(
+                          color: AppColors.accent,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -304,16 +466,35 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
     );
     return index >= 0 ? index : 0;
   }
+}
 
-  Color _getCoverColor(int id) {
-    final colors = [
-      AppColors.primary,
-      AppColors.secondary,
-      AppColors.success,
-      AppColors.warning,
-      AppColors.primaryContainer,
-      AppColors.info,
-    ];
-    return colors[id % colors.length];
+class _StickyFilterDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  _StickyFilterDelegate({required this.child});
+
+  @override
+  double get minExtent => 120;
+
+  @override
+  double get maxExtent => 120;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return child;
   }
+
+  @override
+  bool shouldRebuild(covariant _StickyFilterDelegate oldDelegate) => false;
+}
+
+class _IndexedBook {
+  final BukuEntity book;
+  final int index;
+
+  _IndexedBook(this.book, this.index);
 }

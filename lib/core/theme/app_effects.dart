@@ -31,14 +31,13 @@ class NoiseOverlay extends StatelessWidget {
                   BlendMode.srcATop,
                 ),
                 child: Image.asset(
-                  'packages/flutter_assets/assets/noise.png',
+                  'assets/images/noise.png',
                   fit: BoxFit.cover,
                   repeat: ImageRepeat.repeat,
                   errorBuilder: (context, error, stackTrace) {
                     // Fallback: generated noise pattern via CustomPaint
                     return CustomPaint(
                       painter: _NoisePainter(color: color ?? AppColors.onSurface),
-                      size: Size.infinite,
                     );
                   },
                 ),

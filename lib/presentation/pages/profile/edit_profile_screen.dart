@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/app_effects.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
@@ -87,130 +88,170 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         centerTitle: true,
         automaticallyImplyLeading: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Foto profil section
-              Center(
-                child: Stack(
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Consumer(
-                      builder: (context, ref, _) {
-                        final user = ref.watch(authNotifierProvider).user;
-                        return CircleAvatar(
-                          radius: 56,
-                          backgroundColor: AppColors.primaryContainer,
-                          child: Text(
-                            user?.nama?.isNotEmpty == true 
-                                ? user!.nama[0].toUpperCase() 
-                                : 'U',
-                            style: AppTypography.headlineLgMobile.copyWith(
-                              color: AppColors.primary,
-                              fontSize: 40,
+                    // Foto profil section
+                    Center(
+                      child: Stack(
+                        children: [
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final user = ref.watch(authNotifierProvider).user;
+                              return Container(
+                                width: 112,
+                                height: 112,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceContainerLowest,
+                                  shape: BoxShape.circle,
+                                  boxShadow: AppGradients.elevation2,
+                                  border: Border.all(
+                                    color: AppColors.outlineVariant,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    user?.nama?.isNotEmpty == true
+                                        ? user!.nama[0].toUpperCase()
+                                        : 'U',
+                                    style: AppTypography.displayMd.copyWith(
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          Positioned(
+                            bottom: 2,
+                            right: 2,
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.surfaceContainerLowest,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.surfaceContainerLowest,
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 18,
-                        ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Form fields
+                    Text(
+                      'Informasi Pribadi',
+                      style: AppTypography.headlineMd,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+
+                    AppTextField(
+                      labelText: 'Nama Lengkap',
+                      hintText: 'Masukkan nama lengkap',
+                      controller: _namaController,
+                      prefixIcon: const Icon(Icons.person, color: AppColors.outline),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Nama tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    AppTextField(
+                      labelText: 'Email',
+                      hintText: 'Masukkan email',
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: const Icon(Icons.email_outlined, color: AppColors.outline),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Email tidak boleh kosong';
+                        }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          return 'Format email tidak valid';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    AppTextField(
+                      labelText: 'Nomor Telepon',
+                      hintText: 'Masukkan nomor telepon',
+                      controller: _noTelpController,
+                      keyboardType: TextInputType.phone,
+                      prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.outline),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    AppTextField(
+                      labelText: 'Alamat',
+                      hintText: 'Masukkan alamat lengkap',
+                      controller: _alamatController,
+                      prefixIcon: const Icon(Icons.location_on_outlined, color: AppColors.outline),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
-
-              // Form fields
-              Text(
-                'Informasi Pribadi',
-                style: AppTypography.headlineMd,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              AppTextField(
-                labelText: 'Nama Lengkap',
-                hintText: 'Masukkan nama lengkap',
-                controller: _namaController,
-                prefixIcon: const Icon(Icons.person_outline, color: AppColors.outline),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Nama tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              AppTextField(
-                labelText: 'Email',
-                hintText: 'Masukkan email',
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                prefixIcon: const Icon(Icons.email_outlined, color: AppColors.outline),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Email tidak boleh kosong';
-                  }
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                    return 'Format email tidak valid';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              AppTextField(
-                labelText: 'Nomor Telepon',
-                hintText: 'Masukkan nomor telepon',
-                controller: _noTelpController,
-                keyboardType: TextInputType.phone,
-                prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.outline),
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              AppTextField(
-                labelText: 'Alamat',
-                hintText: 'Masukkan alamat lengkap',
-                controller: _alamatController,
-                prefixIcon: const Icon(Icons.location_on_outlined, color: AppColors.outline),
-                maxLines: 3,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-
-              // Save button
-              SizedBox(
-                width: double.infinity,
-                child: AppButton(
-                  label: _isLoading ? 'Menyimpan...' : 'Simpan Perubahan',
-                  onPressed: _saveProfile,
-                  isLoading: _isLoading,
-                  isExpanded: true,
-                ),
-              ),
-            ],
+            ),
           ),
+          // Sticky save bar
+          _buildStickyBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStickyBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowPrimary.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+        border: Border(
+          top: BorderSide(color: AppColors.outlineVariant),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: AppButton(
+          label: _isLoading ? 'Menyimpan...' : 'Simpan Perubahan',
+          onPressed: _saveProfile,
+          isLoading: _isLoading,
+          isExpanded: true,
         ),
       ),
     );

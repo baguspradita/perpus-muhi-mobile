@@ -20,7 +20,7 @@ class ProfileStatsSection extends StatelessWidget {
       children: [
         Expanded(
           child: _StatCard(
-            icon: Icons.menu_book_outlined,
+            icon: Icons.menu_book,
             value: '$totalPinjam',
             label: 'Total Pinjam',
           ),

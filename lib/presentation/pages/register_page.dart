@@ -1,4 +1,4 @@
-﻿import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +10,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/validators.dart';
+import '../../core/theme/app_effects.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
@@ -142,60 +143,78 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.xl,
+        child: Stack(
+          children: [
+            // Ambient gradient backdrop
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.heroCenterRadial(
+                      primaryColor: AppColors.primary.withValues(alpha: 0.03),
+                      accentColor: AppColors.accent.withValues(alpha: 0.03),
+                      radius: 0.9,
+                    ),
                   ),
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 480),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _buildHeader(),
-                                const SizedBox(height: AppSpacing.xxl),
-                                _buildRoleSelector(),
-                                const SizedBox(height: AppSpacing.xl),
-                                _buildFormFields(),
-                                if (authState.errorMessage.isNotEmpty) ...[
-                                  const SizedBox(height: AppSpacing.lg),
-                                  _buildErrorMessage(authState.errorMessage),
-                                ],
-                                const SizedBox(height: AppSpacing.xxl),
-                                AppButton(
-                                  label: 'Buat Akun',
-                                  isExpanded: true,
-                                  isLoading: authState.isLoading,
-                                  icon: Icons.person_add_alt_1_rounded,
-                                  onPressed: _register,
+                ),
+              ),
+            ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xl,
+                        vertical: AppSpacing.xl,
+                      ),
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 480),
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    _buildHeader(),
+                                    const SizedBox(height: AppSpacing.xxl),
+                                    _buildRoleSelector(),
+                                    const SizedBox(height: AppSpacing.xl),
+                                    _buildFormFields(),
+                                    if (authState.errorMessage.isNotEmpty) ...[
+                                      const SizedBox(height: AppSpacing.lg),
+                                      _buildErrorMessage(authState.errorMessage),
+                                    ],
+                                    const SizedBox(height: AppSpacing.xxl),
+                                    AppButton(
+                                      label: 'Buat Akun',
+                                      isExpanded: true,
+                                      isLoading: authState.isLoading,
+                                      icon: Icons.person_add_alt_1_rounded,
+                                      onPressed: _register,
+                                    ),
+                                    const SizedBox(height: AppSpacing.xl),
+                                    _buildFooter(),
+                                  ],
                                 ),
-                                const SizedBox(height: AppSpacing.xl),
-                                _buildFooter(),
-                              ],
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -204,44 +223,36 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
   Widget _buildHeader() {
     return Column(
       children: [
+        // Logo asset in rounded card
         Container(
-          width: 76,
-          height: 76,
+          width: 112,
+          height: 112,
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            color: AppColors.surfaceContainerLowest,
+            borderRadius: AppRadius.rXl,
+            boxShadow: AppGradients.elevation2,
           ),
-          child: ClipRRect(
-            borderRadius: AppRadius.rMd,
-            child: Image.asset(
-              'assets/images/logo-muhi.png',
-              fit: BoxFit.cover,
-              width: 76,
-              height: 76,
-            ),
+          child: Image.asset(
+            'assets/images/logo-muhi.png',
+            fit: BoxFit.contain,
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          'Selamat Datang',
-          style: AppTypography.heading1.copyWith(
-            fontSize: 26,
+          'Buat Akun',
+          style: AppTypography.headlineLg.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
-            color: AppColors.textPrimary,
+            color: AppColors.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Bergabunglah dengan Perpustakaan Muhi untuk mengakses koleksi buku yang kaya',
-          style: AppTypography.bodyLarge.copyWith(
-            color: AppColors.textSecondary,
+          style: AppTypography.bodyLg.copyWith(
+            color: AppColors.onSurfaceVariant,
             height: 1.6,
           ),
           textAlign: TextAlign.center,
@@ -279,7 +290,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
               Expanded(
                 child: _RoleChip(
                   label: 'Guru',
-                  icon: Icons.person_rounded,
+                  icon: Icons.person,
                   isSelected: _selectedRole == 'guru',
                   onTap: () => setState(() => _selectedRole = 'guru'),
                 ),
@@ -299,7 +310,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           labelText: 'Nama Lengkap',
           hintText: 'Masukkan nama lengkap',
           controller: _namaController,
-          prefixIcon: const Icon(Icons.person_rounded, size: 20),
+          prefixIcon: const Icon(Icons.person, size: 20),
           validator: (v) => Validators.required(v, fieldName: 'Nama'),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -308,7 +319,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           hintText: 'contoh@email.com',
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          prefixIcon: const Icon(Icons.email_rounded, size: 20),
+          prefixIcon: const Icon(Icons.email_outlined, size: 20),
           validator: Validators.email,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -357,7 +368,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           hintText: '0812xxxxxxx',
           controller: _noTelpController,
           keyboardType: TextInputType.phone,
-          prefixIcon: const Icon(Icons.phone_rounded, size: 20),
+          prefixIcon: const Icon(Icons.phone_outlined, size: 20),
           validator: Validators.phone,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -366,7 +377,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           hintText: 'Masukkan alamat lengkap',
           controller: _alamatController,
           maxLines: 2,
-          prefixIcon: const Icon(Icons.location_on_rounded, size: 20),
+          prefixIcon: const Icon(Icons.location_on_outlined, size: 20),
           validator: (v) => Validators.required(v, fieldName: 'Alamat'),
         ),
         if (_selectedRole == 'siswa') ...[
@@ -376,7 +387,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
             hintText: 'Masukkan NISN',
             controller: _nisnController,
             keyboardType: TextInputType.number,
-            prefixIcon: const Icon(Icons.badge_rounded, size: 20),
+            prefixIcon: const Icon(Icons.badge_outlined, size: 20),
             validator: (v) => Validators.numeric(v, fieldName: 'NISN'),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -433,7 +444,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
             value: _selectedKelas,
             decoration: InputDecoration(
               labelText: 'Kelas',
-              prefixIcon: const Icon(Icons.class_rounded, size: 20),
+              prefixIcon: const Icon(Icons.class_outlined, size: 20),
               border: OutlineInputBorder(borderRadius: AppRadius.rLg),
               enabledBorder: OutlineInputBorder(
                 borderRadius: AppRadius.rLg,
@@ -467,7 +478,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
             hintText: 'Masukkan NIP',
             controller: _nipController,
             keyboardType: TextInputType.number,
-            prefixIcon: const Icon(Icons.badge_rounded, size: 20),
+            prefixIcon: const Icon(Icons.badge_outlined, size: 20),
             validator: (v) => Validators.numeric(v, fieldName: 'NIP'),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -475,7 +486,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
             labelText: 'Mata Pelajaran',
             hintText: 'Masukkan mata pelajaran (opsional)',
             controller: _mapelController,
-            prefixIcon: const Icon(Icons.book_rounded, size: 20),
+            prefixIcon: const Icon(Icons.menu_book, size: 20),
           ),
         ],
       ],
@@ -500,7 +511,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.error_outline_rounded,
+              Icons.error_outline,
               color: AppColors.error,
               size: 18,
             ),
@@ -524,7 +535,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
         Text(
           'Sudah punya akun? ',
           style: AppTypography.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: AppColors.onSurfaceVariant,
           ),
         ),
         TextButton(
@@ -540,8 +551,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           child: Text(
             'Masuk',
             style: AppTypography.bodyMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
+              color: AppColors.accent,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),

@@ -6,12 +6,16 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/app_effects.dart';
 import '../../../domain/entities/peminjaman_entity.dart';
 import '../../providers/peminjaman_provider.dart';
 import '../../widgets/app_search_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_shimmer.dart';
-import '../../widgets/page_header.dart';
+import '../../widgets/app_badge.dart';
+import '../../widgets/app_button.dart';
+import '../../widgets/procedural_book_cover.dart';
+import '../../widgets/staggered_list.dart';
 
 class PeminjamanScreen extends ConsumerStatefulWidget {
   const PeminjamanScreen({super.key});
@@ -58,6 +62,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text('Pinjaman'),
         centerTitle: true,
         actions: [],
@@ -78,18 +83,18 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.primary,
                   borderRadius: AppRadius.rPill,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
+                      color: AppColors.shadowPrimary.withValues(alpha: 0.15),
+                      blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: AppColors.primary,
+                labelColor: AppColors.onPrimary,
                 unselectedLabelColor: AppColors.onSurfaceVariant,
                 labelStyle: AppTypography.labelMd.copyWith(
                   fontSize: 13,
@@ -164,9 +169,9 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
       itemBuilder: (_, __) => const Padding(
         padding: EdgeInsets.only(bottom: AppSpacing.sm),
         child: LoadingShimmer(
-          height: 110,
+          height: 120,
           width: double.infinity,
-          borderRadius: 12,
+          borderRadius: 16,
         ),
       ),
     );
@@ -214,8 +219,10 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
       itemCount: peminjaman.length,
-      itemBuilder: (context, index) =>
-          _buildPeminjamanCard(context, peminjaman[index]),
+      itemBuilder: (context, index) => StaggerCell(
+        index: index,
+        child: _buildPeminjamanCard(context, peminjaman[index]),
+      ),
     );
   }
 
@@ -225,6 +232,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
     final judul = detail?.judulBuku ?? 'Buku Tidak Diketahui';
     final penulis = detail?.penulis ?? 'Penulis Tidak Diketahui';
     final coverUrl = detail?.coverUrl;
+    final bookId = detail?.bukuId ?? peminjaman.id;
 
     final isReturned = peminjaman.status.toLowerCase() == 'dikembalikan' ||
         peminjaman.status.toLowerCase() == 'kembali' ||
@@ -234,243 +242,134 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
     final tglJatuhTempoFormatted = formatDateShort(peminjaman.tglJatuhTempo);
     final denda = peminjaman.hitungDenda();
 
-    Widget badge;
     bool isLate = false;
-
-    if (isReturned) {
-      badge = Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.successLight,
-          borderRadius: AppRadius.rPill,
-        ),
-        child: Text(
-          'Dikembalikan',
-          style: AppTypography.bodySmall.copyWith(
-            color: AppColors.success,
-            fontWeight: FontWeight.bold,
-            fontSize: 10,
-          ),
-        ),
-      );
-    } else {
-      final now = DateTime.now();
+    if (!isReturned) {
       final jatuhTempo = DateTime.tryParse(peminjaman.tglJatuhTempo);
       if (jatuhTempo != null) {
-        final today = DateTime(now.year, now.month, now.day);
+        final today = DateTime.now();
         final jatuh = DateTime(jatuhTempo.year, jatuhTempo.month, jatuhTempo.day);
-        if (today.isAfter(jatuh)) {
-          isLate = true;
-          badge = Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.dangerLight,
-              borderRadius: AppRadius.rPill,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 10),
-                const SizedBox(width: 4),
-                Text(
-                  'Terlambat',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.danger,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else {
-          final diffDays = jatuh.difference(today).inDays;
-          badge = Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3E8FF),
-              borderRadius: AppRadius.rPill,
-            ),
-            child: Text(
-              'Sisa $diffDays Hari',
-              style: AppTypography.bodySmall.copyWith(
-                color: const Color(0xFF7E22CE),
-                fontWeight: FontWeight.bold,
-                fontSize: 10,
-              ),
-            ),
-          );
-        }
-      } else {
-        badge = Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.warningLight,
-            borderRadius: AppRadius.rPill,
-          ),
-          child: Text(
-            peminjaman.status,
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.warning,
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
-            ),
-          ),
-        );
+        final nowDay = DateTime(today.year, today.month, today.day);
+        if (nowDay.isAfter(jatuh)) isLate = true;
       }
     }
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.rMd,
-        side: BorderSide(
-          color: Colors.grey.shade100,
-          width: 1,
-        ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.card,
+        border: isLate && !isReturned
+            ? Border.all(color: AppColors.danger, width: 1.5)
+            : null,
+        boxShadow: AppGradients.elevation2,
       ),
       clipBehavior: Clip.hardEdge,
       child: InkWell(
         onTap: () => _showPeminjamanDetail(context, peminjaman),
+        borderRadius: AppRadius.card,
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (isLate && !isReturned)
-                Container(
-                  width: 4,
-                  color: AppColors.danger,
+              // Cover thumbnail
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
+                child: SizedBox(
+                  width: 64,
+                  child: coverUrl != null && coverUrl.isNotEmpty
+                      ? Image.network(
+                          coverUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildCoverPlaceholder(bookId, judul),
+                        )
+                      : _buildCoverPlaceholder(bookId, judul),
+                ),
+              ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  child: Row(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ClipRRect(
-                        borderRadius: AppRadius.rSm,
-                        child: Container(
-                          width: 56,
-                          height: 76,
-                          color: Colors.grey.shade100,
-                          child: coverUrl != null && coverUrl.isNotEmpty
-                              ? Image.network(
-                                  coverUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      _buildCoverPlaceholder(peminjaman.id, judul),
-                                )
-                              : _buildCoverPlaceholder(peminjaman.id, judul),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              judul,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.bodyLg.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.onSurface,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          _buildStatusBadge(isReturned, isLate, peminjaman),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        penulis.isNotEmpty ? penulis : 'Penulis Tidak Diketahui',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.bodySm.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                          fontSize: 12,
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _MetaDate(
+                              label: 'Pinjam',
+                              value: tglPinjamFormatted,
+                            ),
+                          ),
+                          Expanded(
+                            child: _MetaDate(
+                              label: isReturned ? 'Kembali' : 'Tempo',
+                              value: isReturned
+                                  ? formatDateShort(peminjaman.tglKembali ?? '')
+                                  : tglJatuhTempoFormatted,
+                              danger: isLate && !isReturned,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (isLate && !isReturned && denda > 0) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'Denda: ${_formatCurrency(denda)}',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.danger,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                      // CTA for active loans
+                      if (!isReturned) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    judul,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTypography.bodyLg.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.onSurface,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.xs),
-                                badge,
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              penulis.isNotEmpty ? penulis : 'Penulis Tidak Diketahui',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.bodySmall.copyWith(
-                                color: AppColors.textSecondary,
-                                fontSize: 12,
+                            Expanded(
+                              child: AppButton(
+                                label: 'Kembalikan',
+                                type: AppButtonType.filled,
+                                icon: Icons.assignment_return_rounded,
+                                onPressed: () => _confirmReturn(context, peminjaman),
                               ),
                             ),
-                            const Spacer(),
-                            const SizedBox(height: AppSpacing.xs),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'TGL PINJAM',
-                                        style: AppTypography.bodySmall.copyWith(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textSecondary.withOpacity(0.7),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      Text(
-                                        tglPinjamFormatted,
-                                        style: AppTypography.bodyMedium.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.onSurface,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        isReturned ? 'TGL KEMBALI' : 'TGL KEMBALI',
-                                        style: AppTypography.bodySmall.copyWith(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textSecondary.withOpacity(0.7),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                        Text(
-                                          isReturned ? formatDateShort(peminjaman.tglKembali ?? '') : tglJatuhTempoFormatted,
-                                          style: AppTypography.bodyMedium.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.onSurface,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (isLate && !isReturned && denda > 0) ...[
-                                const SizedBox(height: AppSpacing.xs),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Denda: ${_formatCurrency(denda)}',
-                                      style: AppTypography.bodySmall.copyWith(
-                                        color: AppColors.danger,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
                           ],
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -482,31 +381,102 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
     );
   }
 
+  Widget _buildStatusBadge(
+    bool isReturned,
+    bool isLate,
+    PeminjamanEntity peminjaman,
+  ) {
+    if (isReturned) {
+      return AppBadge(
+        text: 'Dikembalikan',
+        variant: AppBadgeVariant.success,
+        fontSize: 10,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      );
+    }
+    if (isLate) {
+      return AppBadge(
+        text: 'Terlambat',
+        variant: AppBadgeVariant.danger,
+        fontSize: 10,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      );
+    }
+    if (peminjaman.tglJatuhTempo.isNotEmpty) {
+      final jatuh = DateTime.tryParse(peminjaman.tglJatuhTempo);
+      if (jatuh != null) {
+        final diff = jatuh.difference(DateTime.now()).inDays;
+        return AppBadge(
+          text: 'Sisa $diff Hari',
+          variant: AppBadgeVariant.info,
+          fontSize: 10,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        );
+      }
+    }
+    return AppBadge(
+      text: peminjaman.status,
+      variant: AppBadgeVariant.warning,
+      fontSize: 10,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    );
+  }
+
   Widget _buildCoverPlaceholder(int id, String title) {
-    final colors = [
-      const Color(0xFFEFF6FF),
-      const Color(0xFFFEF2F2),
-      const Color(0xFFECFDF5),
-      const Color(0xFFFFFBEB),
-    ];
-    final textColors = [
-      const Color(0xFF1D4ED8),
-      const Color(0xFFB91C1C),
-      const Color(0xFF047857),
-      const Color(0xFFB45309),
-    ];
-    final colorIndex = id % colors.length;
-    return Container(
-      color: colors[colorIndex],
-      alignment: Alignment.center,
-      padding: const EdgeInsets.all(4),
-      child: Text(
-        title.isNotEmpty ? title[0].toUpperCase() : 'B',
-        style: AppTypography.headlineMd.copyWith(
-          color: textColors[colorIndex],
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
+    return ProceduralBookCover(
+      title: title,
+      author: '',
+      bookId: id,
+      fit: BoxFit.cover,
+    );
+  }
+
+  void _confirmReturn(BuildContext context, PeminjamanEntity peminjaman) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.rLg),
+        title: const Text('Konfirmasi Pengembalian'),
+        content: const Text('Yakin ingin mengembalikan buku ini?'),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  label: 'Batal',
+                  type: AppButtonType.text,
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: AppButton(
+                  label: 'Kembalikan',
+                  type: AppButtonType.filled,
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    await ref
+                        .read(peminjamanProvider.notifier)
+                        .kembaliPeminjaman(peminjaman.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Buku berhasil dikembalikan'),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.rMd,
+                          ),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -537,7 +507,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
                   padding: const EdgeInsets.only(top: 2),
                   child: Row(
                     children: [
-                      const Icon(Icons.book, size: 16),
+                      const Icon(Icons.menu_book, size: 16),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
@@ -572,9 +542,14 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
             width: 100,
             child: Text(label,
                 style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.textSecondary)),
+                    .copyWith(color: AppColors.onSurfaceVariant)),
           ),
-          Expanded(child: Text(value, style: AppTypography.bodyMedium)),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurface),
+            ),
+          ),
         ],
       ),
     );
@@ -609,10 +584,47 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
   }
 
   String _formatCurrency(int value) {
-    return NumberFormat.currency(
+    final format = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
       decimalDigits: 0,
-    ).format(value);
+    );
+    return format.format(value);
+  }
+}
+
+class _MetaDate extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool danger;
+
+  const _MetaDate({
+    required this.label,
+    required this.value,
+    this.danger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: AppTypography.labelSm.copyWith(
+            color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
+            fontSize: 9,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: AppTypography.dataXs.copyWith(
+            fontWeight: FontWeight.w600,
+            color: danger ? AppColors.danger : AppColors.onSurface,
+          ),
+        ),
+      ],
+    );
   }
 }
