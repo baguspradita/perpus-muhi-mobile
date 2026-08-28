@@ -75,3 +75,13 @@ class GetBukuPopulerUseCase {
     return _repository.getBukuPopuler();
   }
 }
+
+class GetRelatedBooksUseCase {
+  final BukuRepository _repository;
+
+  GetRelatedBooksUseCase(this._repository);
+
+  Future<Either<Failure, List<BukuEntity>>> call(int id) async {
+    return _repository.getRelatedBooks(id);
+  }
+}

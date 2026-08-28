@@ -45,6 +45,52 @@ class BukuEntity extends Equatable {
     this.rating,
   });
 
+  BukuEntity copyWith({
+    int? id,
+    String? judul,
+    String? penulis,
+    String? penerbit,
+    int? tahunTerbit,
+    int? jumlah,
+    int? totalSalinan,
+    int? stokTersedia,
+    String? hurufJudulAwal,
+    String? nomorSalinan,
+    String? status,
+    String? namaKategori,
+    int? kategoriId,
+    String? namaSubjek,
+    int? subjekId,
+    String? namaLokasi,
+    int? lokasiId,
+    String? coverUrl,
+    String? deskripsi,
+    double? rating,
+  }) {
+    return BukuEntity(
+      id: id ?? this.id,
+      judul: judul ?? this.judul,
+      penulis: penulis ?? this.penulis,
+      penerbit: penerbit ?? this.penerbit,
+      tahunTerbit: tahunTerbit ?? this.tahunTerbit,
+      jumlah: jumlah ?? this.jumlah,
+      totalSalinan: totalSalinan ?? this.totalSalinan,
+      stokTersedia: stokTersedia ?? this.stokTersedia,
+      hurufJudulAwal: hurufJudulAwal ?? this.hurufJudulAwal,
+      nomorSalinan: nomorSalinan ?? this.nomorSalinan,
+      status: status ?? this.status,
+      namaKategori: namaKategori ?? this.namaKategori,
+      kategoriId: kategoriId ?? this.kategoriId,
+      namaSubjek: namaSubjek ?? this.namaSubjek,
+      subjekId: subjekId ?? this.subjekId,
+      namaLokasi: namaLokasi ?? this.namaLokasi,
+      lokasiId: lokasiId ?? this.lokasiId,
+      coverUrl: coverUrl ?? this.coverUrl,
+      deskripsi: deskripsi ?? this.deskripsi,
+      rating: rating ?? this.rating,
+    );
+  }
+
   static int _parseInt(dynamic value) {
     if (value == null) return 0;
     if (value is int) return value;
@@ -80,33 +126,92 @@ class BukuEntity extends Equatable {
   }
 
   factory BukuEntity.fromJson(Map<String, dynamic> json) {
-    final kategori = json['kategori'] as Map<String, dynamic>?;
-    final subjek = json['subjek'] as Map<String, dynamic>?;
-    final lokasi = json['lokasi'] as Map<String, dynamic>?;
+    // Beberapa endpoint (cth. buku populer) membungkus data buku di dalam
+    // objek "buku" dan menggunakan "first_buku_id". Gabungkan agar semua
+    // field dapat diambil dari struktur mana pun.
+    final nested = json['buku'];
+    final Map<String, dynamic> j =
+        nested is Map<String, dynamic> ? {...json, ...nested} : json;
+
+    final kategori = (j['kategori'] ?? json['kategori']) as Map<String, dynamic>?;
+    final subjek = (j['subjek'] ?? json['subjek']) as Map<String, dynamic>?;
+    final lokasi = (j['lokasi'] ?? json['lokasi']) as Map<String, dynamic>?;
+
+    // Hitung stok & total salinan dari array "salinan" bila tersedia
+    // (endpoint detail mengembalikannya). Endpoint populer kini juga
+    // mengembalikan stok_tersedia/total_salinan di level atas.
+    int? parsedStok;
+    int? parsedTotal;
+    final salinan = json['salinan'] as List?;
+    if (salinan != null) {
+      int stok = 0;
+      int total = 0;
+      for (final s in salinan) {
+        final sm = s as Map<String, dynamic>;
+        final jumlah = _parseInt(sm['jumlah']);
+        total += 1;
+        if (sm['status'] == 'aktif') stok += jumlah;
+      }
+      parsedStok = stok;
+      parsedTotal = total;
+    }
+
+    // Fallback untuk endpoint lama (jika stok_tersedia tidak ada):
+    // gunakan jumlah dari buku nested.
+    final jumlahValue = _parseInt(j['jumlah'] ?? json['jumlah']);
 
     return BukuEntity(
-      id: _parseInt(json['id'] ?? json['first_id']),
-      judul: json['judul'] as String? ?? '',
-      penulis: json['nama_penulis'] as String? ?? json['penulis'] as String? ?? '',
-      penerbit: json['penerbit'] as String? ?? '',
-      tahunTerbit: _parseInt(json['tahun_terbit']),
-      jumlah: _parseInt(json['jumlah']),
-      totalSalinan: _parseIntNullable(json['total_salinan']),
-      stokTersedia: _parseIntNullable(json['stok_tersedia']),
-      hurufJudulAwal: json['huruf_judul_awal'] as String?,
-      nomorSalinan: (json['nomor_salinan'] ?? json['nomorSalinan'] ?? json['nomor'] ?? json['copy_number'])?.toString(),
-      status: json['status'] as String? ?? 'aktif',
+      id: _parseInt(json['id'] ??
+          json['first_id'] ??
+          json['first_buku_id'] ??
+          j['id']),
+      judul: j['judul'] as String? ?? json['judul'] as String? ?? '',
+      penulis: j['nama_penulis'] as String? ??
+          j['penulis'] as String? ??
+          json['nama_penulis'] as String? ??
+          json['penulis'] as String? ??
+          '',
+      penerbit: j['penerbit'] as String? ?? json['penerbit'] as String? ?? '',
+      tahunTerbit: _parseInt(j['tahun_terbit'] ?? json['tahun_terbit']),
+      jumlah: jumlahValue,
+      totalSalinan: _parseIntNullable(json['total_salinan']) ?? parsedTotal ?? 1,
+      stokTersedia: _parseIntNullable(json['stok_tersedia']) ?? parsedStok ?? (jumlahValue > 0 ? jumlahValue : null),
+      hurufJudulAwal:
+          j['huruf_judul_awal'] as String? ?? json['huruf_judul_awal'] as String?,
+      nomorSalinan: (j['nomor_salinan'] ??
+              j['nomorSalinan'] ??
+              j['nomor'] ??
+              j['copy_number'] ??
+              json['nomor_salinan'] ??
+              json['nomorSalinan'])
+          ?.toString(),
+      status: j['status'] as String? ?? json['status'] as String? ?? 'aktif',
       namaKategori: _extractString(kategori) ??
-          json['nama_kategori'] as String? ??
-          json['kategori'] as String?,
-      kategoriId: _extractId(kategori),
+          j['nama_kategori'] as String? ??
+          json['nama_kategori'] as String?,
+      kategoriId: _extractId(kategori) ??
+          _parseIntNullable(j['kategori_id'] ?? json['kategori_id']),
       namaSubjek: _extractString(subjek),
       subjekId: _extractId(subjek),
       namaLokasi: _extractString(lokasi),
-      lokasiId: _extractId(lokasi),
-      coverUrl: json['cover_url'] as String? ?? json['gambar'] as String? ?? json['cover'] as String?,
-      deskripsi: json['deskripsi'] as String? ?? json['sinopsis'] as String? ?? json['description'] as String?,
-      rating: (json['rating'] as num?)?.toDouble() ?? (json['average_rating'] as num?)?.toDouble(),
+      lokasiId: _extractId(lokasi) ??
+          _parseIntNullable(j['lokasi_id'] ?? json['lokasi_id']),
+      coverUrl: j['cover_url'] as String? ??
+          j['gambar'] as String? ??
+          j['cover'] as String? ??
+          json['cover_url'] as String? ??
+          json['gambar'] as String? ??
+          json['cover'] as String?,
+      deskripsi: j['deskripsi'] as String? ??
+          j['sinopsis'] as String? ??
+          j['description'] as String? ??
+          json['deskripsi'] as String? ??
+          json['sinopsis'] as String? ??
+          json['description'] as String?,
+      rating: (j['rating'] as num?)?.toDouble() ??
+          (j['average_rating'] as num?)?.toDouble() ??
+          (json['rating'] as num?)?.toDouble() ??
+          (json['average_rating'] as num?)?.toDouble(),
     );
   }
 

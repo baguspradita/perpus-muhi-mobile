@@ -15,7 +15,8 @@ import '../../../core/utils/date_utils.dart';
 import '../../../domain/entities/buku_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/peminjaman_provider.dart';
-import '../../providers/dashboard_buku_provider.dart';
+import '../../providers/book_detail_provider.dart';
+import '../../providers/related_books_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/book_card.dart';
 import '../../widgets/section_header.dart';
@@ -36,6 +37,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   static const int _descriptionMaxLines = 4;
   late AnimationController _staggerController;
 
+  late BukuEntity _book = widget.book;
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +47,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       vsync: this,
     );
     _staggerController.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(bookDetailProvider(_book.id).notifier).loadBuku(_book.id);
+    });
   }
 
   @override
@@ -54,8 +60,17 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isAvailable = (widget.book.stokTersedia ?? 0) > 0 && widget.book.status == 'aktif';
-    final relatedBooks = _getRelatedBooks(ref);
+    final detail = ref.watch(bookDetailProvider(_book.id));
+    final detailBook = detail.book;
+    if (detailBook != null) {
+      _book = detailBook.copyWith(
+        stokTersedia: detailBook.stokTersedia ?? _book.stokTersedia,
+        totalSalinan: detailBook.totalSalinan ?? _book.totalSalinan,
+      );
+    }
+    final isAvailable = (_book.stokTersedia ?? 0) > 0 && _book.status == 'aktif';
+    final relatedState = ref.watch(relatedBooksProvider(_book.id));
+    final relatedBooks = relatedState.books;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -82,12 +97,15 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (detail.errorMessage.isNotEmpty && detail.book == null)
+                    _buildErrorBanner(detail.errorMessage),
+
                   // Title & Meta
                   _buildTitleSection(),
                   const SizedBox(height: AppSpacing.lg),
 
                   // Description
-                  if (widget.book.deskripsi != null && widget.book.deskripsi!.isNotEmpty)
+                  if (_book.deskripsi != null && _book.deskripsi!.isNotEmpty)
                     _buildDescriptionSection()
                   else
                     const SizedBox.shrink(),
@@ -97,7 +115,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
 
                   const SizedBox(height: AppSpacing.xl),
 
-                  if (relatedBooks.isNotEmpty) _buildRelatedSection(context, relatedBooks),
+                  _buildRelatedSection(context, relatedState),
 
                   const SizedBox(height: AppSpacing.xl + AppSpacing.lg),
                 ],
@@ -112,7 +130,92 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
     );
   }
 
-  Widget _buildRelatedSection(BuildContext context, List<BukuEntity> books) {
+  Widget _buildErrorBanner(String message) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.errorContainer,
+        borderRadius: AppRadius.rMd,
+        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: AppColors.error, size: 20),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              'Gagal memuat detail lengkap: $message',
+              style: AppTypography.bodyMedium.copyWith(color: AppColors.onErrorContainer),
+            ),
+          ),
+          TextButton(
+            onPressed: () => ref.read(bookDetailProvider(_book.id).notifier).loadBuku(_book.id),
+            child: Text('Coba Lagi', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRelatedSection(BuildContext context, RelatedBooksState relatedState) {
+    if (relatedState.isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(
+            title: 'Buku Serupa',
+            actionLabel: 'Lihat Semua',
+            onAction: () => context.push(RouteNames.katalog),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            height: 210,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(right: AppSpacing.md),
+              itemCount: 4,
+              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+              itemBuilder: (_, __) => SizedBox(
+                width: 150,
+                child: _buildRelatedSkeleton(),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (relatedState.errorMessage.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(
+            title: 'Buku Serupa',
+            actionLabel: 'Coba Lagi',
+            onAction: () => ref.read(relatedBooksProvider(_book.id).notifier).loadRelatedBooks(_book.id),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            height: 210,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Center(
+              child: Text(
+                relatedState.errorMessage,
+                style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final books = relatedState.books;
+    if (books.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -141,7 +244,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                   isAvailable: (book.stokTersedia ?? 0) > 0,
                   bookId: book.id,
                   isGridMode: true,
-                  heroTag: book.id,
+                  heroTag: 'book_cover_${book.id}',
                   onTap: () => context.push(
                     RouteNames.bookDetail,
                     extra: book,
@@ -155,24 +258,51 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
     );
   }
 
-  List<BukuEntity> _getRelatedBooks(WidgetRef ref) {
-    final state = ref.watch(dashboardBukuProvider);
-    final pool = [...state.bukuPopuler, ...state.bukuBaru, ...state.rekomendasiBuku];
-    final seen = <int>{};
-    final result = <BukuEntity>[];
-    for (final b in pool) {
-      if (b.id == widget.book.id) continue;
-      if (seen.contains(b.id)) continue;
-      seen.add(b.id);
-      result.add(b);
-      if (result.length >= 8) break;
-    }
-    return result;
+  Widget _buildRelatedSkeleton() {
+    return Container(
+      width: 150,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainer,
+        borderRadius: AppRadius.card,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerHigh,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.rMd)),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 16,
+                  width: double.infinity,
+                  color: AppColors.surfaceContainerHigh,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 12,
+                  width: 80,
+                  color: AppColors.surfaceContainerHigh,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildHeroCover() {
-    final coverUrl = widget.book.coverUrl;
-    final heroTag = 'book_cover_${widget.book.id}';
+    final coverUrl = _book.coverUrl;
+    final heroTag = 'book_cover_${_book.id}';
 
     return Stack(
       fit: StackFit.expand,
@@ -180,7 +310,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
         // Background color/shimmer
         Container(
           decoration: BoxDecoration(
-            color: _getCoverColor(widget.book.id).withOpacity(0.15),
+            color: _getCoverColor(_book.id).withOpacity(0.15),
           ),
         ),
 
@@ -241,9 +371,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   Widget _buildCoverPlaceholder() {
     return Center(
       child: ProceduralBookCover(
-        title: widget.book.judul,
-        author: widget.book.penulis,
-        bookId: widget.book.id,
+        title: _book.judul,
+        author: _book.penulis,
+        bookId: _book.id,
         width: 140,
         height: 190,
       ),
@@ -255,7 +385,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.book.judul,
+          _book.judul,
           style: AppTypography.headlineLgMobile.copyWith(
             fontWeight: FontWeight.w700,
             color: AppColors.onSurface,
@@ -269,22 +399,22 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
           children: [
             _MetaChip(
               icon: Icons.person,
-              label: widget.book.penulis,
-              onTap: () => _filterByAuthor(widget.book.penulis),
+              label: _book.penulis,
+              onTap: () => _filterByAuthor(_book.penulis),
             ),
-            if (widget.book.namaKategori != null)
+            if (_book.namaKategori != null)
               _MetaChip(
                 icon: Icons.category_outlined,
-                label: widget.book.namaKategori!,
-                onTap: () => _filterByCategory(widget.book.namaKategori!),
+                label: _book.namaKategori!,
+                onTap: () => _filterByCategory(_book.namaKategori!),
               ),
-            if (widget.book.tahunTerbit > 0)
+            if (_book.tahunTerbit > 0)
               _MetaChip(
                 icon: Icons.calendar_today_outlined,
-                label: widget.book.tahunTerbit.toString(),
+                label: _book.tahunTerbit.toString(),
               ),
-            if (widget.book.rating != null && widget.book.rating! > 0)
-              _RatingChip(rating: widget.book.rating!),
+            if (_book.rating != null && _book.rating! > 0)
+              _RatingChip(rating: _book.rating!),
           ],
         ),
       ],
@@ -292,7 +422,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   }
 
   Widget _buildDescriptionSection() {
-    final description = widget.book.deskripsi!;
+    final description = _book.deskripsi!;
     final isLong = _calculateLines(description) > _descriptionMaxLines;
 
     return Column(
@@ -352,33 +482,33 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
           _DetailRow(
             icon: Icons.category_outlined,
             label: 'Kategori',
-            value: widget.book.namaKategori ?? '-',
+            value: _book.namaKategori ?? '-',
           ),
           _DetailDivider(),
           _DetailRow(
             icon: Icons.business_outlined,
             label: 'Penerbit',
-            value: widget.book.penerbit,
+            value: _book.penerbit,
           ),
           _DetailDivider(),
           _DetailRow(
             icon: Icons.calendar_today_outlined,
             label: 'Tahun Terbit',
-            value: widget.book.tahunTerbit.toString(),
+            value: _book.tahunTerbit.toString(),
           ),
-          if (widget.book.namaSubjek != null) ...[
+          if (_book.namaSubjek != null) ...[
             _DetailDivider(),
             _DetailRow(
               icon: Icons.subject_outlined,
               label: 'Subjek',
-              value: widget.book.namaSubjek!,
+              value: _book.namaSubjek!,
             ),
           ],
           _DetailDivider(),
           _DetailRow(
             icon: Icons.location_on_outlined,
             label: 'Lokasi',
-            value: widget.book.namaLokasi ?? '-',
+            value: _book.namaLokasi ?? '-',
           ),
           _DetailDivider(),
           _DetailRow(
@@ -396,17 +526,17 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   }
 
   String _getStatusLabel() {
-    if ((widget.book.stokTersedia ?? 0) > 0 && widget.book.status == 'aktif') {
-      return 'Tersedia (${widget.book.stokTersedia} salinan)';
+    if ((_book.stokTersedia ?? 0) > 0 && _book.status == 'aktif') {
+      return 'Tersedia (${_book.stokTersedia} salinan)';
     }
-    if (widget.book.status != 'aktif') {
+    if (_book.status != 'aktif') {
       return 'Tidak Aktif';
     }
     return 'Habis';
   }
 
   Color _getStatusColor() {
-    if ((widget.book.stokTersedia ?? 0) > 0 && widget.book.status == 'aktif') {
+    if ((_book.stokTersedia ?? 0) > 0 && _book.status == 'aktif') {
       return AppColors.success;
     }
     return AppColors.warning;
@@ -509,7 +639,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: AppRadius.rLg),
             title: Text(
-              'Peminjaman "${widget.book.judul}"',
+              'Peminjaman "${_book.judul}"',
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
@@ -600,7 +730,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
 
                               await ref.read(peminjamanProvider.notifier).createPeminjaman(
                                 userId: user.id,
-                                bukuIds: [widget.book.id],
+                                bukuIds: [_book.id],
                                 tglPinjam: tglPinjam,
                                 tglJatuhTempo: tglJatuhTempo,
                               );
@@ -615,7 +745,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                                   content: Text(
                                     error.isNotEmpty
                                         ? error
-                                        : 'Peminjaman "${widget.book.judul}" berhasil!',
+                                        : 'Peminjaman "${_book.judul}" berhasil!',
                                   ),
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),

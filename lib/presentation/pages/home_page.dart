@@ -255,22 +255,52 @@ class HomePage extends ConsumerWidget {
     WidgetRef ref,
     DashboardBukuState state,
   ) {
+    final usedTags = <String>{};
+    String resolveTag(int id) {
+      final base = 'book_cover_$id';
+      String tag = base;
+      int i = 0;
+      while (usedTags.contains(tag)) {
+        tag = '${base}_dup$i';
+        i++;
+      }
+      usedTags.add(tag);
+      return tag;
+    }
+
+    _BookSectionData buildSection({
+      required String title,
+      required List<BukuEntity> books,
+      required IconData emptyIcon,
+      required String emptyTitle,
+      required String emptySubtitle,
+    }) {
+      return _BookSectionData(
+        title: title,
+        books: books,
+        heroTags: books.map((b) => resolveTag(b.id)).toList(),
+        emptyIcon: emptyIcon,
+        emptyTitle: emptyTitle,
+        emptySubtitle: emptySubtitle,
+      );
+    }
+
     final sections = [
-      _BookSectionData(
+      buildSection(
         title: 'Rekomendasi',
         books: state.rekomendasiBuku,
         emptyIcon: Icons.recommend_outlined,
         emptyTitle: 'Belum Ada Rekomendasi',
         emptySubtitle: 'Rekomendasi akan muncul berdasarkan minat baca Anda.',
       ),
-      _BookSectionData(
+      buildSection(
         title: 'Buku Baru',
         books: state.bukuBaru,
         emptyIcon: Icons.new_releases_outlined,
         emptyTitle: 'Belum Ada Buku Baru',
         emptySubtitle: 'Buku terbaru akan muncul di sini.',
       ),
-      _BookSectionData(
+      buildSection(
         title: 'Populer Bulan Ini',
         books: state.bukuPopuler,
         emptyIcon: Icons.trending_up_outlined,
@@ -340,10 +370,9 @@ Widget _buildHorizontalBookSection(
                       coverUrl: book.coverUrl,
                       coverColor: _getCoverColor(book.id),
                       isAvailable: isAvailable,
-                      loanStatus: isAvailable ? 'Tersedia' : 'Habis',
                       bookId: book.id,
                       isGridMode: true,
-                      heroTag: book.id,
+                      heroTag: section.heroTags[index],
                       onTap: () => context.push(
                         RouteNames.bookDetail,
                         extra: book,
@@ -374,6 +403,7 @@ Widget _buildHorizontalBookSection(
 class _BookSectionData {
   final String title;
   final List<BukuEntity> books;
+  final List<String> heroTags;
   final IconData emptyIcon;
   final String emptyTitle;
   final String emptySubtitle;
@@ -381,6 +411,7 @@ class _BookSectionData {
   _BookSectionData({
     required this.title,
     required this.books,
+    required this.heroTags,
     required this.emptyIcon,
     required this.emptyTitle,
     required this.emptySubtitle,

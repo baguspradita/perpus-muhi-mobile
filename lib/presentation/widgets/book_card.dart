@@ -19,7 +19,7 @@ class BookCard extends StatefulWidget {
   final String? dueDate;
   final VoidCallback? onTap;
   final bool isGridMode;
-  final int? heroTag;
+  final String? heroTag;
   final int bookId;
 
   const BookCard({
@@ -73,7 +73,7 @@ class _BookCardState extends State<BookCard> {
                 child: Stack(
                   children: [
                     Hero(
-                      tag: 'book_cover_${widget.heroTag}',
+                      tag: widget.heroTag ?? 'book_cover_${widget.bookId}',
                       child: _buildCoverImage(),
                     ),
                     // Status badge top-right
@@ -163,7 +163,7 @@ class _BookCardState extends State<BookCard> {
             children: [
               // Book cover section
               Hero(
-                tag: 'book_cover_${widget.heroTag}',
+                tag: widget.heroTag ?? 'book_cover_${widget.bookId}',
                 child: ProceduralBookCover(
                   title: widget.title,
                   author: widget.author,

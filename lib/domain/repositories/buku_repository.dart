@@ -21,4 +21,6 @@ abstract class BukuRepository {
   Future<Either<Failure, List<BukuEntity>>> getBukuBaru();
 
   Future<Either<Failure, List<BukuEntity>>> getBukuPopuler();
+
+  Future<Either<Failure, List<BukuEntity>>> getRelatedBooks(int id);
 }

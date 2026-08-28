@@ -36,6 +36,7 @@ abstract class ApiConstants {
   static const String dashboardRekomendasi = '/dashboard/rekomendasi';
   static const String dashboardBukuBaru = '/dashboard/buku-baru';
   static const String dashboardBukuPopuler = '/dashboard/buku-populer';
+  static const String bukuRelated = '/buku/{id}/related';
 
   static const String jurusan = '/jurusan';
   static const String kategoriBuku = '/kategori-buku';

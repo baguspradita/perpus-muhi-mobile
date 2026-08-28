@@ -132,4 +132,20 @@ class BukuRemoteDataSource {
       rethrow;
     }
   }
+
+  Future<List<BukuEntity>> getBukuRelated(int id) async {
+    try {
+      final url = ApiConstants.bukuRelated.replaceAll('{id}', id.toString());
+      final response = await _apiClient.dio.get(url);
+      final data = response.data;
+
+      if (data is Map<String, dynamic> && data['data'] is List) {
+        return (data['data'] as List).map((e) => BukuEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
+
+      return [];
+    } on DioException {
+      rethrow;
+    }
+  }
 }

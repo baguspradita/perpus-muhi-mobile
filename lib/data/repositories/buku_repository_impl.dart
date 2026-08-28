@@ -96,4 +96,16 @@ class BukuRepositoryImpl implements BukuRepository {
       return Left(ServerFailure('Terjadi kesalahan: ${e.toString()}'));
     }
   }
+
+  @override
+  Future<Either<Failure, List<BukuEntity>>> getRelatedBooks(int id) async {
+    try {
+      final books = await _remoteDataSource.getBukuRelated(id);
+      return Right(books);
+    } on AppException catch (e) {
+      return Left(mapExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure('Terjadi kesalahan: ${e.toString()}'));
+    }
+  }
 }
