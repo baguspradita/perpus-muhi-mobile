@@ -15,6 +15,7 @@ import '../providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/dashboard_buku_provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/peminjaman_provider.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/user_avatar.dart';
 import '../widgets/book_card.dart';
@@ -24,24 +25,31 @@ import '../widgets/app_button.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/staggered_list.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
-  static bool _notifCountInitialized = false;
+  @override
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(notificationProvider.notifier).loadUnreadCount();
+      ref.read(peminjamanProvider.notifier).loadAllData();
+      ref.read(dashboardProvider.notifier).loadDashboard();
+    });
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
     final dashboardState = ref.watch(dashboardProvider);
     final dashboardBukuState = ref.watch(dashboardBukuProvider);
-
-    if (!_notifCountInitialized) {
-      _notifCountInitialized = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(notificationProvider.notifier).loadUnreadCount();
-      });
-    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -215,7 +223,7 @@ class HomePage extends ConsumerWidget {
         // Wide card
         StatCard(
           title: 'Buku Tersedia',
-          value: d?.totalBuku.toString() ?? '1,240',
+          value: (d?.totalBuku ?? 0).toString(),
           icon: Icons.menu_book,
           iconColor: AppColors.primary,
           bgColor: AppColors.surfaceContainerLowest,
@@ -228,7 +236,7 @@ class HomePage extends ConsumerWidget {
             Expanded(
               child: StatCard(
                 title: 'Dipinjam',
-                value: d?.peminjamanAktif.toString() ?? '2',
+                value: (d?.peminjamanAktif ?? 0).toString(),
                 icon: Icons.menu_book,
                 iconColor: AppColors.primary,
                 bgColor: AppColors.surfaceContainerLowest,
@@ -238,7 +246,7 @@ class HomePage extends ConsumerWidget {
             Expanded(
               child: StatCard(
                 title: 'Terlambat',
-                value: d?.peminjamanTerlambat.toString() ?? '0',
+                value: (d?.peminjamanTerlambat ?? 0).toString(),
                 icon: Icons.warning_amber,
                 iconColor: AppColors.danger,
                 bgColor: AppColors.surfaceContainerLowest,

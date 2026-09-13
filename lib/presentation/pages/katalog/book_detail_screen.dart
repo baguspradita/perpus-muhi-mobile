@@ -15,6 +15,7 @@ import '../../../core/utils/date_utils.dart';
 import '../../../domain/entities/buku_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/peminjaman_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/book_detail_provider.dart';
 import '../../providers/related_books_provider.dart';
 import '../../widgets/app_button.dart';
@@ -272,7 +273,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
             child: Container(
               decoration: BoxDecoration(
                 color: AppColors.surfaceContainerHigh,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.rMd)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
               ),
             ),
           ),
@@ -738,6 +739,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                               if (!context.mounted) return;
 
                               final error = ref.read(peminjamanProvider).errorMessage;
+                              if (error.isEmpty) {
+                                ref.invalidate(dashboardProvider);
+                              }
                               Navigator.pop(dialogContext);
 
                               ScaffoldMessenger.of(context).showSnackBar(

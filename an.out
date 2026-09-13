@@ -1,0 +1,16 @@
+Analyzing home_page.dart...                                     
+
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\presentation\pages\home_page.dart:9:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\presentation\pages\home_page.dart:10:1 - directives_ordering
+warning - Unused import: '../../core/theme/app_motion.dart'. Try removing the import directive - lib\presentation\pages\home_page.dart:10:8 - unused_import
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\presentation\pages\home_page.dart:11:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\presentation\pages\home_page.dart:13:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\presentation\pages\home_page.dart:16:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\presentation\pages\home_page.dart:21:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\presentation\pages\home_page.dart:23:1 - directives_ordering
+warning - Unused import: '../widgets/procedural_book_cover.dart'. Try removing the import directive - lib\presentation\pages\home_page.dart:23:8 - unused_import
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\presentation\pages\home_page.dart:24:1 - directives_ordering
+warning - Unused import: '../widgets/app_button.dart'. Try removing the import directive - lib\presentation\pages\home_page.dart:24:8 - unused_import
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\presentation\pages\home_page.dart:168:37 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\presentation\pages\home_page.dart:175:33 - avoid_redundant_argument_values
+
