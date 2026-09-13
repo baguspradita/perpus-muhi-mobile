@@ -28,7 +28,8 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(peminjamanProvider.notifier).loadPeminjamanRiwayat();
+      if (!mounted) return;
+      ref.read(peminjamanProvider.notifier).refreshAllData();
     });
   }
 
@@ -137,7 +138,6 @@ class _RiwayatScreenState extends ConsumerState<RiwayatScreen> {
 
     final detail = peminjaman.details.isNotEmpty ? peminjaman.details.first : null;
     final judul = detail?.judulBuku ?? 'Buku Tidak Diketahui';
-    final penulis = detail?.penulis ?? 'Penulis Tidak Diketahui';
     final coverUrl = detail?.coverUrl;
     final bookId = detail?.bukuId ?? peminjaman.id;
 

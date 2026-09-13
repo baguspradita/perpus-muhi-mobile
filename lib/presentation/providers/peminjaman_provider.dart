@@ -1,8 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/dependency_injection/injection_container.dart';
-import '../../core/errors/failures.dart';
 import '../../domain/entities/peminjaman_entity.dart';
 import '../../domain/usecases/peminjaman_usecases.dart';
 
@@ -66,12 +64,21 @@ class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
 
   Future<void> loadPeminjamanAktif({String? status}) async {
     state = state.copyWith(isLoading: true, errorMessage: '');
+    await _fetchPeminjamanAktif(status: status);
+  }
 
+  Future<void> _fetchPeminjamanAktif({String? status}) async {
     final result = await _getPeminjamanListUseCase(status: status);
 
     result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        // Jangan hapus data yang tampil jika sudah ada daftar sebelumnya;
+        // error hanya ditampilkan saat list benar-benar kosong.
+        if (state.peminjamanAktif.isEmpty) {
+          state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        } else {
+          state = state.copyWith(isLoading: false);
+        }
       },
       (list) {
         // Filter: exclude buku yang sudah dikembalikan (tglKembali sudah diisi)
@@ -86,12 +93,19 @@ class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
 
   Future<void> loadPeminjamanRiwayat({String? status}) async {
     state = state.copyWith(isLoading: true, errorMessage: '');
+    await _fetchPeminjamanRiwayat(status: status);
+  }
 
+  Future<void> _fetchPeminjamanRiwayat({String? status}) async {
     final result = await _getRiwayatPeminjamanUseCase(status: status);
 
     result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        if (state.peminjamanRiwayat.isEmpty) {
+          state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        } else {
+          state = state.copyWith(isLoading: false);
+        }
       },
       (list) {
         // Hanya tampilkan peminjaman yang sudah selesai/dikembalikan
@@ -114,11 +128,25 @@ class PeminjamanNotifier extends StateNotifier<PeminjamanState> {
     state = state.copyWith(isLoading: true, errorMessage: '');
     
     await Future.wait([
-      loadPeminjamanAktif(),
-      loadPeminjamanRiwayat(),
+      _fetchPeminjamanAktif(),
+      _fetchPeminjamanRiwayat(),
     ]);
     
     state = state.copyWith(isLoading: false);
+  }
+
+  /// Refresh senyap: ambil data terbaru tanpa menyalakan isLoading (tanpa shimmer)
+  Future<void> refreshPeminjamanAktif({String? status}) =>
+      _fetchPeminjamanAktif(status: status);
+
+  Future<void> refreshPeminjamanRiwayat({String? status}) =>
+      _fetchPeminjamanRiwayat(status: status);
+
+  Future<void> refreshAllData() async {
+    await Future.wait([
+      _fetchPeminjamanAktif(),
+      _fetchPeminjamanRiwayat(),
+    ]);
   }
 
   Future<void> createPeminjaman({

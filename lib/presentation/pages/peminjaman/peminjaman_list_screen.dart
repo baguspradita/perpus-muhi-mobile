@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +10,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/app_effects.dart';
 import '../../../domain/entities/peminjaman_entity.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/peminjaman_provider.dart';
 import '../../widgets/app_search_bar.dart';
 import '../../widgets/empty_state.dart';
@@ -24,15 +27,68 @@ class PeminjamanScreen extends ConsumerStatefulWidget {
 }
 
 class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
+  Timer? _refreshTimer;
+  static const _pollInterval = Duration(seconds: 15);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _silentRefresh();
+      _startPolling();
+    });
   }
+
+  void _startPolling() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(_pollInterval, (_) => _silentRefresh());
+  }
+
+  void _stopPolling() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (!mounted) return;
+    if (lifecycleState == AppLifecycleState.resumed) {
+      _startPolling();
+      _silentRefresh();
+    } else {
+      _stopPolling();
+    }
+  }
+
+  Future<void> _silentRefresh() async {
+    final before = ref.read(peminjamanProvider);
+    final beforeAktif = before.peminjamanAktif.map((p) => p.id).toSet();
+    final beforeRiwayat = before.peminjamanRiwayat.map((p) => p.id).toSet();
+
+    await ref.read(peminjamanProvider.notifier).refreshAllData();
+    if (!mounted) return;
+
+    final after = ref.read(peminjamanProvider);
+    final afterAktif = after.peminjamanAktif.map((p) => p.id).toSet();
+    final afterRiwayat = after.peminjamanRiwayat.map((p) => p.id).toSet();
+    if (!_sameIds(beforeAktif, afterAktif) ||
+        !_sameIds(beforeRiwayat, afterRiwayat)) {
+      ref.invalidate(dashboardProvider);
+    }
+  }
+
+  bool _sameIds(Set<int> a, Set<int> b) {
+    if (a.length != b.length) return false;
+    return a.containsAll(b);
+  }
+
+  Future<void> _handleRefresh() => _silentRefresh();
 
   void _handleTabChange() {
     if (_tabController.indexIsChanging) return;
@@ -46,6 +102,8 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
 
   @override
   void dispose() {
+    _stopPolling();
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
@@ -177,17 +235,33 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
   }
 
   Widget _buildErrorState(String error) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: EmptyState(
-          icon: Icons.error_outline,
-          title: 'Gagal Memuat Data',
-          subtitle: error,
-          actionLabel: 'Coba Lagi',
-          onAction: () {
-            ref.read(peminjamanProvider.notifier).loadAllData();
-          },
+    return _buildRefreshable(
+      Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: EmptyState(
+            icon: Icons.error_outline,
+            title: 'Gagal Memuat Data',
+            subtitle: error,
+            actionLabel: 'Coba Lagi',
+            onAction: () {
+              ref.read(peminjamanProvider.notifier).loadAllData();
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRefreshable(Widget child) {
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: LayoutBuilder(
+        builder: (context, constraints) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(height: constraints.maxHeight, child: child),
+          ],
         ),
       ),
     );
@@ -195,32 +269,38 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
 
   Widget _buildPeminjamanList(List<PeminjamanEntity> peminjaman) {
     if (peminjaman.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: EmptyState(
-            icon: Icons.history_outlined,
-            title: _tabController.index == 0
-                ? 'Belum Ada Pinjaman Aktif'
-                : 'Belum Ada Riwayat',
-            subtitle: _tabController.index == 0
-                ? 'Pinjaman aktif Anda akan muncul di sini.'
-                : 'Riwayat peminjaman Anda akan muncul di sini.',
-            actionLabel: 'Muat Ulang',
-            onAction: () {
-              ref.read(peminjamanProvider.notifier).loadAllData();
-            },
+      return _buildRefreshable(
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: EmptyState(
+              icon: Icons.history_outlined,
+              title: _tabController.index == 0
+                  ? 'Belum Ada Pinjaman Aktif'
+                  : 'Belum Ada Riwayat',
+              subtitle: _tabController.index == 0
+                  ? 'Pinjaman aktif Anda akan muncul di sini.'
+                  : 'Riwayat peminjaman Anda akan muncul di sini.',
+              actionLabel: 'Muat Ulang',
+              onAction: () {
+                ref.read(peminjamanProvider.notifier).loadAllData();
+              },
+            ),
           ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
-      itemCount: peminjaman.length,
-      itemBuilder: (context, index) => StaggerCell(
-        index: index,
-        child: _buildPeminjamanCard(context, peminjaman[index]),
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
+        itemCount: peminjaman.length,
+        itemBuilder: (context, index) => StaggerCell(
+          index: index,
+          child: _buildPeminjamanCard(context, peminjaman[index]),
+        ),
       ),
     );
   }
