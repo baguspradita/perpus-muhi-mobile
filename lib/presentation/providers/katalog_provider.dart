@@ -44,6 +44,9 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
   final GetAllBukuUseCase _getAllBukuUseCase;
   final GetFiltersUseCase _getFiltersUseCase;
 
+  final Map<String, List<BukuEntity>> _bukuCache = {};
+  Map<String, dynamic>? _filtersCache;
+
   KatalogNotifier({
     required GetAllBukuUseCase getAllBukuUseCase,
     required GetFiltersUseCase getFiltersUseCase,
@@ -51,10 +54,28 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
        _getFiltersUseCase = getFiltersUseCase,
        super(const KatalogState());
 
-  Future<void> loadData({String? search, int? kategoriId}) async {
-    // Load books
+  String _bukuCacheKey({String? search, int? kategoriId}) {
+    return 'kategori=$kategoriId|search=${search ?? ''}';
+  }
+
+  Future<void> loadData({String? search, int? kategoriId, bool refresh = false}) async {
+    final cacheKey = _bukuCacheKey(search: search, kategoriId: kategoriId);
+
+    // Serve from cache unless refresh (drag-to-refresh / retry) is requested.
+    if (!refresh && _bukuCache.containsKey(cacheKey)) {
+      state = state.copyWith(
+        isLoading: false,
+        bukuList: _bukuCache[cacheKey]!,
+        errorMessage: '',
+        searchQuery: search ?? '',
+      );
+      return;
+    }
+
+    // Parameter change (new category/search, not cached) → full spinner.
+    // Explicit refresh (drag / retry) keeps existing data visible (no flicker).
     state = state.copyWith(
-      isLoading: true,
+      isLoading: !refresh && !_bukuCache.containsKey(cacheKey),
       errorMessage: '',
       searchQuery: search ?? '',
     );
@@ -66,9 +87,17 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
 
     booksResult.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        // Keep cached data for this exact query on failed refresh; otherwise
+        // surface the error (replacing the grid).
+        final cached = _bukuCache[cacheKey];
+        state = state.copyWith(
+          isLoading: false,
+          bukuList: cached ?? [],
+          errorMessage: cached != null ? '' : failure.message,
+        );
       },
       (list) {
+        _bukuCache[cacheKey] = list;
         state = state.copyWith(
           isLoading: false,
           bukuList: list,
@@ -78,7 +107,16 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
     );
   }
 
-  Future<void> loadFilters() async {
+  Future<void> loadFilters({bool refresh = false}) async {
+    if (!refresh && _filtersCache != null) {
+      state = state.copyWith(
+        isFiltersLoading: false,
+        filters: _filtersCache!,
+        errorMessage: '',
+      );
+      return;
+    }
+
     state = state.copyWith(isFiltersLoading: true);
 
     final result = await _getFiltersUseCase.call();
@@ -88,6 +126,7 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
         state = state.copyWith(isFiltersLoading: false);
       },
       (filters) {
+        _filtersCache = filters;
         state = state.copyWith(
           isFiltersLoading: false,
           filters: filters,
@@ -95,6 +134,11 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
         );
       },
     );
+  }
+
+  void clearCache() {
+    _bukuCache.clear();
+    _filtersCache = null;
   }
 }
 

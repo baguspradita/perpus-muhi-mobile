@@ -81,6 +81,7 @@ class CategoryChipsScroll extends StatelessWidget {
     return SizedBox(
       height: 38,
       child: ListView.separated(
+        key: const PageStorageKey('category_chips_scroll'),
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         itemCount: categories.length,

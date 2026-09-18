@@ -62,8 +62,11 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
           // Hero header with title
           SliverToBoxAdapter(
             child: _buildHeader(),
@@ -82,9 +85,20 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
             SliverToBoxAdapter(child: _buildErrorState(katalogState.errorMessage))
           else
             _buildMasonrySliver(katalogState),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _onRefresh() async {
+    final notifier = ref.read(katalogProvider.notifier);
+    await notifier.loadData(
+      search: _currentSearch.isEmpty ? null : _currentSearch,
+      kategoriId: _selectedCategoryId,
+      refresh: true,
+    );
+    await notifier.loadFilters(refresh: true);
   }
 
   Widget _buildHeader() {
@@ -246,7 +260,11 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
           subtitle: error,
           actionLabel: 'Coba Lagi',
           onAction: () {
-            ref.read(katalogProvider.notifier).loadData();
+            ref.read(katalogProvider.notifier).loadData(
+                  search: _currentSearch.isEmpty ? null : _currentSearch,
+                  kategoriId: _selectedCategoryId,
+                  refresh: true,
+                );
           },
         ),
       ),
@@ -271,6 +289,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
                 ref.read(katalogProvider.notifier).loadData(
                       search: null,
                       kategoriId: null,
+                      refresh: true,
                     );
                 setState(() {
                   _currentSearch = '';
@@ -489,7 +508,7 @@ class _StickyFilterDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(covariant _StickyFilterDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant _StickyFilterDelegate oldDelegate) => true;
 }
 
 class _IndexedBook {
