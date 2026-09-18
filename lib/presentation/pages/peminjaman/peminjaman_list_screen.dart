@@ -522,13 +522,31 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
                 (detail) => Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.menu_book, size: 16),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: Text(
-                          '${detail.judulBuku} (x${detail.jumlah})',
-                          style: AppTypography.bodySmall,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              detail.judulBuku,
+                              style: AppTypography.bodySmall.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              detail.idEksamplar != null &&
+                                      detail.idEksamplar!.isNotEmpty
+                                  ? 'No. Salinan: ${detail.idEksamplar}${detail.jumlah > 1 ? ' (x${detail.jumlah})' : ''}'
+                                  : 'Jumlah: x${detail.jumlah}',
+                              style: AppTypography.labelSm.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
