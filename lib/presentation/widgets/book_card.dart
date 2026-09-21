@@ -245,7 +245,7 @@ class _BookCardState extends State<BookCard> {
       text = 'Tersedia';
       variant = AppBadgeVariant.success;
     } else {
-      text = 'Dipinjam';
+      text = 'Habis';
       variant = AppBadgeVariant.danger;
     }
 
