@@ -46,6 +46,12 @@ class AuthRemoteDataSource {
       rethrow;
     } on ValidationException {
       rethrow;
+    } catch (e) {
+      if (e is DioException) {
+        final serverMessage = e.response?.data is Map ? e.response?.data['message'] as String? : null;
+        throw ServerException(serverMessage ?? 'Koneksi ke server gagal (${e.message ?? e.type.name})');
+      }
+      throw ServerException(e.toString());
     }
   }
 

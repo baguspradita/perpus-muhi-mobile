@@ -1,8 +1,21 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 abstract class ApiConstants {
-  static const String _host = '127.0.0.1';
-  static const int _port = 8000;
+  // Dapat di-override saat running: flutter run --dart-define=API_HOST=192.168.1.6
+  static const String _customHost = String.fromEnvironment('API_HOST');
+  static const int _customPort = int.fromEnvironment('API_PORT', defaultValue: 8000);
+
+  static String get _host {
+    if (_customHost.isNotEmpty) {
+      return _customHost;
+    }
+    if (kIsWeb) {
+      return 'localhost';
+    }
+    return '127.0.0.1';
+  }
+
+  static int get _port => _customPort;
 
   static String get baseUrl {
     if (kIsWeb) {
