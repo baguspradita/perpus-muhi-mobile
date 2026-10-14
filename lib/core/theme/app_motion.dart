@@ -268,7 +268,7 @@ extension ReducedMotion on BuildContext {
 
 /// Mixin for widgets that need stagger controller
 /// Usage: class _MyWidgetState extends State\<MyWidget> with StaggerControllerMixin {
-mixin StaggerControllerMixin<T extends StatefulWidget> on State<T> {
+mixin StaggerControllerMixin<T extends StatefulWidget> on State<T>, TickerProvider {
   late AnimationController _staggerController;
 
   @override

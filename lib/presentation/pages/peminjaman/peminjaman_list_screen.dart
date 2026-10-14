@@ -31,6 +31,17 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
   late TabController _tabController;
   Timer? _refreshTimer;
   static const _pollInterval = Duration(seconds: 15);
+  String _searchQuery = '';
+
+  List<PeminjamanEntity> _filterPeminjaman(List<PeminjamanEntity> list) {
+    if (_searchQuery.isEmpty) return list;
+    final query = _searchQuery.toLowerCase();
+    return list.where((p) {
+      final matchName = p.userName.toLowerCase().contains(query);
+      final matchBuku = p.details.any((d) => d.judulBuku.toLowerCase().contains(query));
+      return matchName || matchBuku;
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -182,6 +193,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
 
   Widget _buildActiveTab(BuildContext context) {
     final peminjamanState = ref.watch(peminjamanProvider);
+    final filteredList = _filterPeminjaman(peminjamanState.peminjamanAktif);
 
     return Column(
       children: [
@@ -189,6 +201,11 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: AppSearchBar(
             hintText: 'Cari nama siswa atau buku...',
+            onChanged: (val) {
+              setState(() {
+                _searchQuery = val;
+              });
+            },
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -197,7 +214,7 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
               ? _buildLoadingState()
               : peminjamanState.errorMessage.isNotEmpty
                   ? _buildErrorState(peminjamanState.errorMessage)
-                  : _buildPeminjamanList(peminjamanState.peminjamanAktif),
+                  : _buildPeminjamanList(filteredList),
         ),
       ],
     );
@@ -205,15 +222,28 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
 
   Widget _buildHistoryTab(BuildContext context) {
     final peminjamanState = ref.watch(peminjamanProvider);
+    final filteredList = _filterPeminjaman(peminjamanState.peminjamanRiwayat);
 
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: AppSearchBar(
+            hintText: 'Cari nama siswa atau buku...',
+            onChanged: (val) {
+              setState(() {
+                _searchQuery = val;
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         Expanded(
           child: peminjamanState.isLoading
               ? _buildLoadingState()
               : peminjamanState.errorMessage.isNotEmpty
                   ? _buildErrorState(peminjamanState.errorMessage)
-                  : _buildPeminjamanList(peminjamanState.peminjamanRiwayat),
+                  : _buildPeminjamanList(filteredList),
         ),
       ],
     );
@@ -557,6 +587,44 @@ class _PeminjamanScreenState extends ConsumerState<PeminjamanScreen>
           ),
         ),
         actions: [
+          if (peminjaman.status.toLowerCase() != 'dikembalikan')
+            TextButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Konfirmasi'),
+                    content: const Text('Apakah Anda yakin ingin mengembalikan buku ini?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Batal'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          Navigator.pop(context); // Close the detail dialog
+                          
+                          final notifier = ref.read(peminjamanProvider.notifier);
+                          await notifier.kembaliPeminjaman(peminjaman.id);
+                          
+                          if (mounted) {
+                            final error = ref.read(peminjamanProvider).errorMessage;
+                            if (error.isNotEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Buku berhasil dikembalikan')));
+                            }
+                          }
+                        },
+                        child: const Text('Ya'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('Kembalikan', style: TextStyle(color: Colors.red)),
+            ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Tutup'),

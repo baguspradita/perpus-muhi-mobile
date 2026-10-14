@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/dependency_injection/injection_container.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../domain/usecases/profile_usecases.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routes/route_names.dart';
@@ -52,24 +55,42 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Update profile logic would go here
-      // For now, just show success and go back
-      await Future.delayed(const Duration(seconds: 1));
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Profil berhasil diperbarui'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        context.pop();
-      }
+      final useCase = sl<UpdateProfileUseCase>();
+      final result = await useCase(
+        nama: _namaController.text,
+        noTelp: _noTelpController.text,
+        alamat: _alamatController.text,
+      );
+
+      result.fold(
+        (failure) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Gagal memperbarui profil: ${failure.message}'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        (user) {
+          if (mounted) {
+            ref.read(authNotifierProvider.notifier).updateUser(user);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Profil berhasil diperbarui'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+            context.pop();
+          }
+        },
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memperbarui profil: $e'),
+            content: Text('Terjadi kesalahan: $e'),
             backgroundColor: AppColors.error,
           ),
         );

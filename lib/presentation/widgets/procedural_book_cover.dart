@@ -24,7 +24,7 @@ class ProceduralBookCover extends StatelessWidget {
 
   // Cover template by bookId
   CoverTemplate get _template =>
-      CoverTemplate.values[bookId % CoverTemplate.values.length];
+      CoverTemplate.values[bookId.abs() % CoverTemplate.values.length];
 
   // Color palette - monochrome navy-tinted with amber accent
   Color get _baseColor {
@@ -35,7 +35,7 @@ class ProceduralBookCover extends StatelessWidget {
       const Color(0xFF0F1A2E), // Navy dark
       const Color(0xFF21344F), // Navy blue
     ];
-    return palettes[bookId % palettes.length];
+    return palettes[bookId.abs() % palettes.length];
   }
 
   Color get _accentColor => const Color(0xFFD4A843); // Amber
@@ -144,7 +144,7 @@ class ProceduralBookCover extends StatelessWidget {
       Icons.school_rounded,
       Icons.lightbulb,
     ];
-    return icons[bookId % icons.length];
+    return icons[bookId.abs() % icons.length];
   }
 
   String _truncate(String text, int maxLength) {

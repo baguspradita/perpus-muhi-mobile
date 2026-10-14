@@ -29,7 +29,13 @@ class ValidationFailure extends Failure {
   static String _combineErrors(String message, Map<String, dynamic> errors) {
     if (errors.isEmpty) return message;
     final details = errors.entries
-        .map((e) => '${e.key}: ${(e.value as List).join(', ')}')
+        .map((e) {
+          final value = e.value;
+          if (value is List) {
+            return '${e.key}: ${value.join(', ')}';
+          }
+          return '${e.key}: $value';
+        })
         .join('\n');
     return details;
   }

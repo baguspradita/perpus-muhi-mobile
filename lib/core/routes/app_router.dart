@@ -104,13 +104,13 @@ GoRoute(
     GoRoute(
       path: RouteNames.bookDetail,
       builder: (context, state) {
-        final bookId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        // We need to fetch the book data first, but for now we'll use extra
+        final bookId = int.tryParse(state.pathParameters['id'] ?? '');
         final book = state.extra as BukuEntity?;
-        if (book == null) {
-          return const Scaffold(body: Center(child: Text('Buku tidak ditemukan')));
-        }
-        return BookDetailScreen(book: book);
+        
+        return BookDetailScreen(
+          book: book,
+          bookId: bookId,
+        );
       },
     ),
         GoRoute(

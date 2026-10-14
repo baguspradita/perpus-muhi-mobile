@@ -58,7 +58,7 @@ class BookDetailNotifier extends StateNotifier<BookDetailState> {
 }
 
 final bookDetailProvider =
-    StateNotifierProvider.family<BookDetailNotifier, BookDetailState, int>(
+    StateNotifierProvider.autoDispose.family<BookDetailNotifier, BookDetailState, int>(
   (ref, id) {
     return BookDetailNotifier(sl<GetBukuByIdUseCase>());
   },

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
@@ -24,9 +24,11 @@ import '../../widgets/section_header.dart';
 import '../../widgets/procedural_book_cover.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
-  final BukuEntity book;
+  final BukuEntity? book;
+  final int? bookId;
 
-  const BookDetailScreen({super.key, required this.book});
+  const BookDetailScreen({super.key, this.book, this.bookId})
+      : assert(book != null || bookId != null);
 
   @override
   ConsumerState<BookDetailScreen> createState() => _BookDetailScreenState();
@@ -38,7 +40,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   static const int _descriptionMaxLines = 4;
   late AnimationController _staggerController;
 
-  late BukuEntity _book = widget.book;
+  late final int _bookId = widget.book?.id ?? widget.bookId!;
 
   @override
   void initState() {
@@ -49,7 +51,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
     );
     _staggerController.forward();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(bookDetailProvider(_book.id).notifier).loadBuku(_book.id);
+      ref.read(bookDetailProvider(_bookId).notifier).loadBuku(_bookId);
     });
   }
 
@@ -59,19 +61,33 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final detail = ref.watch(bookDetailProvider(_book.id));
+  // Helper method to get the latest book data without causing build mutations
+  BukuEntity? _getCurrentBook(BookDetailState detail) {
     final detailBook = detail.book;
-    if (detailBook != null) {
-      _book = detailBook.copyWith(
-        stokTersedia: detailBook.stokTersedia ?? _book.stokTersedia,
-        totalSalinan: detailBook.totalSalinan ?? _book.totalSalinan,
+    if (detailBook != null && widget.book != null) {
+      return detailBook.copyWith(
+        stokTersedia: detailBook.stokTersedia ?? widget.book!.stokTersedia,
+        totalSalinan: detailBook.totalSalinan ?? widget.book!.totalSalinan,
       );
     }
-    final isAvailable = (_book.stokTersedia ?? 0) > 0 && _book.status == 'aktif';
-    final relatedState = ref.watch(relatedBooksProvider(_book.id));
-    final relatedBooks = relatedState.books;
+    return detailBook ?? widget.book;
+  }
+
+  BukuEntity get currentBook => _getCurrentBook(ref.read(bookDetailProvider(_bookId))) ?? widget.book!;
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = ref.watch(bookDetailProvider(_bookId));
+    final book = _getCurrentBook(detail);
+
+    if (book == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final isAvailable = (book.stokTersedia ?? 0) > 0 && book.status == 'aktif';
+    final relatedState = ref.watch(relatedBooksProvider(_bookId));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -106,7 +122,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                   const SizedBox(height: AppSpacing.lg),
 
                   // Description
-                  if (_book.deskripsi != null && _book.deskripsi!.isNotEmpty)
+                  if (currentBook.deskripsi != null && currentBook.deskripsi!.isNotEmpty)
                     _buildDescriptionSection()
                   else
                     const SizedBox.shrink(),
@@ -138,7 +154,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       decoration: BoxDecoration(
         color: AppColors.errorContainer,
         borderRadius: AppRadius.rMd,
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -151,7 +167,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
             ),
           ),
           TextButton(
-            onPressed: () => ref.read(bookDetailProvider(_book.id).notifier).loadBuku(_book.id),
+            onPressed: () => ref.read(bookDetailProvider(currentBook.id).notifier).loadBuku(currentBook.id),
             child: Text('Coba Lagi', style: TextStyle(color: AppColors.error)),
           ),
         ],
@@ -194,7 +210,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
           SectionHeader(
             title: 'Buku Serupa',
             actionLabel: 'Coba Lagi',
-            onAction: () => ref.read(relatedBooksProvider(_book.id).notifier).loadRelatedBooks(_book.id),
+            onAction: () => ref.read(relatedBooksProvider(currentBook.id).notifier).loadRelatedBooks(currentBook.id),
           ),
           const SizedBox(height: AppSpacing.sm),
           Container(
@@ -247,7 +263,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                   isGridMode: true,
                   heroTag: 'book_cover_${book.id}',
                   onTap: () => context.push(
-                    RouteNames.bookDetail,
+                    '/katalog/${book.id}',
                     extra: book,
                   ),
                 ),
@@ -302,8 +318,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   }
 
   Widget _buildHeroCover() {
-    final coverUrl = _book.coverUrl;
-    final heroTag = 'book_cover_${_book.id}';
+    final coverUrl = currentBook.coverUrl;
+    final heroTag = 'book_cover_${currentBook.id}';
 
     return Stack(
       fit: StackFit.expand,
@@ -311,7 +327,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
         // Background color/shimmer
         Container(
           decoration: BoxDecoration(
-            color: _getCoverColor(_book.id).withOpacity(0.15),
+            color: _getCoverColor(currentBook.id).withValues(alpha: 0.15),
           ),
         ),
 
@@ -358,8 +374,8 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
                 colors: [
-                  AppColors.primary.withOpacity(0.85),
-                  AppColors.primary.withOpacity(0),
+                  AppColors.primary.withValues(alpha: 0.85),
+                  AppColors.primary.withValues(alpha: 0),
                 ],
               ),
             ),
@@ -372,9 +388,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   Widget _buildCoverPlaceholder() {
     return Center(
       child: ProceduralBookCover(
-        title: _book.judul,
-        author: _book.penulis,
-        bookId: _book.id,
+        title: currentBook.judul,
+        author: currentBook.penulis,
+        bookId: currentBook.id,
         width: 140,
         height: 190,
       ),
@@ -386,7 +402,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _book.judul,
+          currentBook.judul,
           style: AppTypography.headlineLgMobile.copyWith(
             fontWeight: FontWeight.w700,
             color: AppColors.onSurface,
@@ -400,22 +416,22 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
           children: [
             _MetaChip(
               icon: Icons.person,
-              label: _book.penulis,
-              onTap: () => _filterByAuthor(_book.penulis),
+              label: currentBook.penulis,
+              onTap: () => _filterByAuthor(currentBook.penulis),
             ),
-            if (_book.namaKategori != null)
+            if (currentBook.namaKategori != null)
               _MetaChip(
                 icon: Icons.category_outlined,
-                label: _book.namaKategori!,
-                onTap: () => _filterByCategory(_book.namaKategori!),
+                label: currentBook.namaKategori!,
+                onTap: () => _filterByCategory(currentBook.namaKategori!),
               ),
-            if (_book.tahunTerbit > 0)
+            if (currentBook.tahunTerbit > 0)
               _MetaChip(
                 icon: Icons.calendar_today_outlined,
-                label: _book.tahunTerbit.toString(),
+                label: currentBook.tahunTerbit.toString(),
               ),
-            if (_book.rating != null && _book.rating! > 0)
-              _RatingChip(rating: _book.rating!),
+            if (currentBook.rating != null && currentBook.rating! > 0)
+              _RatingChip(rating: currentBook.rating!),
           ],
         ),
       ],
@@ -423,7 +439,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   }
 
   Widget _buildDescriptionSection() {
-    final description = _book.deskripsi!;
+    final description = currentBook.deskripsi!;
     final isLong = _calculateLines(description) > _descriptionMaxLines;
 
     return Column(
@@ -476,40 +492,40 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: AppRadius.rLg,
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.3)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           _DetailRow(
             icon: Icons.category_outlined,
             label: 'Kategori',
-            value: _book.namaKategori ?? '-',
+            value: currentBook.namaKategori ?? '-',
           ),
           _DetailDivider(),
           _DetailRow(
             icon: Icons.business_outlined,
             label: 'Penerbit',
-            value: _book.penerbit,
+            value: currentBook.penerbit,
           ),
           _DetailDivider(),
           _DetailRow(
             icon: Icons.calendar_today_outlined,
             label: 'Tahun Terbit',
-            value: _book.tahunTerbit.toString(),
+            value: currentBook.tahunTerbit.toString(),
           ),
-          if (_book.namaSubjek != null) ...[
+          if (currentBook.namaSubjek != null) ...[
             _DetailDivider(),
             _DetailRow(
               icon: Icons.subject_outlined,
               label: 'Subjek',
-              value: _book.namaSubjek!,
+              value: currentBook.namaSubjek!,
             ),
           ],
           _DetailDivider(),
           _DetailRow(
             icon: Icons.location_on_outlined,
             label: 'Lokasi',
-            value: _book.namaLokasi ?? '-',
+            value: currentBook.namaLokasi ?? '-',
           ),
           _DetailDivider(),
           _DetailRow(
@@ -527,17 +543,17 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   }
 
   String _getStatusLabel() {
-    if ((_book.stokTersedia ?? 0) > 0 && _book.status == 'aktif') {
-      return 'Tersedia (${_book.stokTersedia} salinan)';
+    if ((currentBook.stokTersedia ?? 0) > 0 && currentBook.status == 'aktif') {
+      return 'Tersedia (${currentBook.stokTersedia} salinan)';
     }
-    if (_book.status != 'aktif') {
+    if (currentBook.status != 'aktif') {
       return 'Tidak Aktif';
     }
     return 'Habis';
   }
 
   Color _getStatusColor() {
-    if ((_book.stokTersedia ?? 0) > 0 && _book.status == 'aktif') {
+    if ((currentBook.stokTersedia ?? 0) > 0 && currentBook.status == 'aktif') {
       return AppColors.success;
     }
     return AppColors.warning;
@@ -583,7 +599,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         border: Border(
-          top: BorderSide(color: AppColors.outlineVariant.withOpacity(0.2)),
+          top: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
         ),
       ),
       child: SafeArea(
@@ -640,7 +656,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: AppRadius.rLg),
             title: Text(
-              'Peminjaman "${_book.judul}"',
+              'Peminjaman "${currentBook.judul}"',
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
@@ -731,7 +747,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
 
                               await ref.read(peminjamanProvider.notifier).createPeminjaman(
                                 userId: user.id,
-                                bukuIds: [_book.id],
+                                bukuIds: [currentBook.id],
                                 tglPinjam: tglPinjam,
                                 tglJatuhTempo: tglJatuhTempo,
                               );
@@ -749,7 +765,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                                   content: Text(
                                     error.isNotEmpty
                                         ? error
-                                        : 'Peminjaman "${_book.judul}" berhasil!',
+                                        : 'Peminjaman "${currentBook.judul}" berhasil!',
                                   ),
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
@@ -964,7 +980,7 @@ class _DetailDivider extends StatelessWidget {
       child: Divider(
         height: 1,
         thickness: 1,
-        color: AppColors.outlineVariant.withOpacity(0.2),
+        color: AppColors.outlineVariant.withValues(alpha: 0.2),
       ),
     );
   }

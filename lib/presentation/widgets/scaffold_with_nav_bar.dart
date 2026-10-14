@@ -8,15 +8,32 @@ import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_typography.dart';
 import '../widgets/skip_to_content.dart';
 
-class ScaffoldWithNavBar extends StatelessWidget {
+class ScaffoldWithNavBar extends StatefulWidget {
   final Widget child;
 
   const ScaffoldWithNavBar({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
-    final contentFocusNode = FocusNode(debugLabel: 'main-content');
+  State<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
+}
 
+class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
+  late final FocusNode _contentFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _contentFocusNode = FocusNode(debugLabel: 'main-content');
+  }
+
+  @override
+  void dispose() {
+    _contentFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
@@ -24,11 +41,11 @@ class ScaffoldWithNavBar extends StatelessWidget {
             policy: OrderedTraversalPolicy(),
             child: Column(
               children: [
-                SkipToContent(targetFocusNode: contentFocusNode),
+                SkipToContent(targetFocusNode: _contentFocusNode),
                 Expanded(
                   child: Focus(
-                    focusNode: contentFocusNode,
-                    child: child,
+                    focusNode: _contentFocusNode,
+                    child: widget.child,
                   ),
                 ),
               ],
@@ -65,8 +82,8 @@ class ScaffoldWithNavBar extends StatelessWidget {
                 label: 'Katalog',
               ),
               NavigationDestination(
-                icon: Icon(Icons.menu_book),
-                selectedIcon: Icon(Icons.menu_book, color: AppColors.primary),
+                icon: Icon(Icons.assignment_outlined),
+                selectedIcon: Icon(Icons.assignment, color: AppColors.primary),
                 label: 'Pinjaman',
               ),
               NavigationDestination(

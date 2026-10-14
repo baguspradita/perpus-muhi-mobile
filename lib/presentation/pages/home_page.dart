@@ -382,7 +382,7 @@ Widget _buildHorizontalBookSection(
                       isGridMode: true,
                       heroTag: section.heroTags[index],
                       onTap: () => context.push(
-                        RouteNames.bookDetail,
+                        '/katalog/${book.id}',
                         extra: book,
                       ),
                     ),

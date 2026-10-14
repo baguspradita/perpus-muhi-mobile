@@ -12,7 +12,13 @@ Failure mapExceptionToFailure(AppException exception) {
     return UnauthorizedFailure(exception.message, statusCode: exception.statusCode);
   } else if (exception is ValidationException) {
     final combinedMessage = exception.errors.entries
-        .map((e) => '${e.key}: ${(e.value as List).join(', ')}')
+        .map((e) {
+          final value = e.value;
+          if (value is List) {
+            return '${e.key}: ${value.join(', ')}';
+          }
+          return '${e.key}: $value';
+        })
         .join('\n');
     return ValidationFailure(combinedMessage, errors: exception.errors, statusCode: exception.statusCode);
   } else if (exception is NotFoundException) {

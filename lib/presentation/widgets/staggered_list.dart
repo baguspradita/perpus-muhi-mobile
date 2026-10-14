@@ -270,14 +270,15 @@ class _StaggerCellState extends State<StaggerCell>
   @override
   void initState() {
     super.initState();
-    final total = widget.duration + widget.delay * widget.index;
+    final effectiveIndex = widget.index % 12; // Cap index to avoid long blanks
+    final total = widget.duration + widget.delay * effectiveIndex;
     _controller = AnimationController(vsync: this, duration: total);
 
-    final start = widget.index == 0
+    final start = effectiveIndex == 0
         ? 0.0
-        : (widget.delay.inMilliseconds * widget.index) /
+        : (widget.delay.inMilliseconds * effectiveIndex) /
             total.inMilliseconds;
-    final end = (widget.delay.inMilliseconds * widget.index +
+    final end = (widget.delay.inMilliseconds * effectiveIndex +
             widget.duration.inMilliseconds) /
         total.inMilliseconds;
 

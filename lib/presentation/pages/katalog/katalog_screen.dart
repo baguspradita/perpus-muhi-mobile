@@ -373,7 +373,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: GestureDetector(
-        onTap: () => context.push(RouteNames.bookDetail, extra: book),
+        onTap: () => context.push('/katalog/${book.id}', extra: book),
         child: Container(
           decoration: BoxDecoration(
             color: AppColors.surfaceContainerLowest,

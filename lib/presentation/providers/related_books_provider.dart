@@ -59,7 +59,7 @@ class RelatedBooksNotifier extends StateNotifier<RelatedBooksState> {
 }
 
 final relatedBooksProvider =
-    StateNotifierProvider.family<RelatedBooksNotifier, RelatedBooksState, int>(
+    StateNotifierProvider.autoDispose.family<RelatedBooksNotifier, RelatedBooksState, int>(
   (ref, id) {
     return RelatedBooksNotifier(
       getRelatedBooksUseCase: sl<GetRelatedBooksUseCase>(),

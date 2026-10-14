@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -63,7 +63,7 @@ class FocusableAction extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: (focusColor ?? AppColors.focusRing).withOpacity(0.3),
+                        color: (focusColor ?? AppColors.focusRing).withValues(alpha: 0.3),
                         blurRadius: 8,
                         spreadRadius: focusOffset,
                         offset: Offset(0, 0),
@@ -125,7 +125,7 @@ class FocusableContainer extends StatelessWidget {
                     borderRadius: radius,
                     boxShadow: [
                       BoxShadow(
-                        color: (focusColor ?? AppColors.focusRing).withOpacity(0.3),
+                        color: (focusColor ?? AppColors.focusRing).withValues(alpha: 0.3),
                         blurRadius: 8,
                         spreadRadius: focusOffset,
                         offset: Offset(0, 0),

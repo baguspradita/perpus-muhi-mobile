@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
@@ -87,7 +87,7 @@ class _PopularBookCard extends StatelessWidget {
                   child: Icon(
                     Icons.menu_book,
                     size: 40,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
               ),
@@ -216,7 +216,7 @@ class _RecommendedBookCard extends StatelessWidget {
                   child: Icon(
                     Icons.menu_book,
                     size: 40,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
               ),

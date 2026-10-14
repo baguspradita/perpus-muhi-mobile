@@ -212,6 +212,10 @@ Future<void> loadUserProfile() async {
     print('=== loadUserProfile END ===');
   }
 
+  void updateUser(UserEntity user) {
+    state = state.copyWith(user: user);
+  }
+
   Future<void> logout() async {
     state = state.copyWith(isLoading: true, errorMessage: '');
 

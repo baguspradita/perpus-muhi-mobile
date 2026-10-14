@@ -178,6 +178,16 @@ class _BookCardState extends State<BookCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      widget.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodyLg.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
                       widget.author,
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.onSurfaceVariant,

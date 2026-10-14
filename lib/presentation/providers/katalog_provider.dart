@@ -98,6 +98,9 @@ class KatalogNotifier extends StateNotifier<KatalogState> {
       },
       (list) {
         _bukuCache[cacheKey] = list;
+        if (_bukuCache.length > 15) {
+          _bukuCache.remove(_bukuCache.keys.first);
+        }
         state = state.copyWith(
           isLoading: false,
           bukuList: list,

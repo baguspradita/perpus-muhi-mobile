@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/dependency_injection/injection_container.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../domain/usecases/profile_usecases.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routes/route_names.dart';
@@ -41,24 +44,41 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Change password logic would go here
-      // For now, just show success and go back
-      await Future.delayed(const Duration(seconds: 1));
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Password berhasil diubah'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        context.pop();
-      }
+      final useCase = sl<UpdatePasswordUseCase>();
+      final result = await useCase(
+        currentPassword: _currentPasswordController.text,
+        newPassword: _newPasswordController.text,
+        newPasswordConfirmation: _confirmPasswordController.text,
+      );
+
+      result.fold(
+        (failure) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Gagal mengubah password: ${failure.message}'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        (_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Password berhasil diubah'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+            context.pop();
+          }
+        },
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal mengubah password: $e'),
+            content: Text('Terjadi kesalahan: $e'),
             backgroundColor: AppColors.error,
           ),
         );

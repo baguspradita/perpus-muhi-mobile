@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
@@ -94,7 +94,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                   decoration: BoxDecoration(
                     color: _currentPage == index
                         ? Colors.white
-                        : Colors.white.withOpacity(0.5),
+                        : Colors.white.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(3),
                   ),
                 );
@@ -113,7 +113,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
         gradient: LinearGradient(
           colors: [
             banner.color,
-            banner.color.withOpacity(0.8),
+            banner.color.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -121,7 +121,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
         borderRadius: AppRadius.rMd,
         boxShadow: [
           BoxShadow(
-            color: banner.color.withOpacity(0.3),
+            color: banner.color.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -135,7 +135,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
             child: Icon(
               banner.icon,
               size: 120,
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
             ),
           ),
           Padding(
@@ -158,7 +158,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                   banner.subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
